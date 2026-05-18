@@ -45,11 +45,12 @@ body {
     width: 100%;
     min-height: 100vh;
     display: flex;
-    justify-content: center;    /* Keeps content centered horizontally */
-    align-items: flex-start;    /* FIX: Align from the absolute top first */
-    padding-top: 15px;          /* FIX: Perfect breathing room below desktop fixed nav */
-    padding-left: 20px;
-    padding-right: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 80px;
+    /* FIX: Reduced desktop side padding from 20px to 12px */
+    padding-left: 12px;
+    padding-right: 12px;
     transition: padding 0.2s ease;
 }
 
@@ -58,13 +59,14 @@ body {
 .create-post-page,
 .post-card {
     width: 100%;
-    max-width: 800px;           /* Prevents layouts from stretching too wide on desktop */
+    max-width: 800px;
     background: var(--card-bg);
     color: var(--text-main);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
-    margin: 0 auto 20px auto;   /* Centers horizontally, leaves margin below card */
+    /* FIX: Tightened internal padding from 20px to 14px on sides */
+    padding: 16px 14px;
+    margin: 0 auto 16px auto;
     box-shadow: 0 2px 8px var(--shadow);
 }
 
@@ -172,8 +174,9 @@ nav {
     width: 100%;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    padding: 16px;
-    margin-bottom: 16px;
+    /* FIX: Tightened post card internal padding for cleaner text alignment */
+    padding: 14px 12px;
+    margin-bottom: 14px;
     border-radius: 10px;
     box-shadow: 0 1px 4px var(--shadow);
 }
@@ -757,7 +760,6 @@ li {
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
 
-    /* 1. Move Navbar to Bottom */
     nav {
         top: auto;
         bottom: 0;
@@ -769,49 +771,54 @@ li {
         /* Spread items out */
     }
 
-    /* 2. Hide the "Recipeit" Logo to save space */
     .nav-brand {
         display: none;
     }
 
-    /* 3. Make Nav Items take full width */
     .nav-items {
         width: 100%;
         justify-content: space-between;
         padding: 0 15px;
     }
 
-    /* 4. Hide Text Labels (Icons only) */
     .nav-text {
         display: none;
     }
 
-    /* 5. Big Icons for touch targets */
     .nav-link i {
         font-size: 1.6rem;
     }
 
-    /* 6. Adjust Page Spacing */
     #app {
+        padding-top: 10px !important;
         padding-bottom: 80px !important;
-        /* Add bottom gap so nav doesn't cover content */
-        align-items: flex-start;
-        /* Allow scrolling from top */
+        padding-left: 2px !important;  /* FIX: 0px removes the outer gray tracks */
+        padding-right: 2px !important; /* FIX: 0px removes the outer gray tracks */
     }
 
-    /* 7. Full width Dashboard on Mobile */
     .dashboard-page,
-    #posts-feed {
-        width: 100%;
-        max-width: 100%;
-        border: none;
-        /* Remove border on mobile for cleaner look */
-        box-shadow: none;
-        background: transparent;
+    .create-post-page,
+    .post-card {
+        max-width: 99%;
+        border-left: 2px !important;  /* FIX: Removes borders that compress code */
+        border-right: 2px !important; 
+        border-radius: 0px !important; /* FIX: Flat edges look premium on small screens */
+        box-shadow: none !important;
+        
+        /* Give content a slight breathing buffer from the glass edge */
+        padding: 12px 12px !important; 
+        margin: 0 0 10px 0 !important;
     }
 
-    /* 8. Fix Search Bar padding */
-    .dashboard-page>div:first-child {
-        padding: 0 15px;
+    .category-bar,
+    .dashboard-page > div:first-child {
+        padding: 0 12px !important; /* Aligns category buttons with the cards */
+    }
+    
+    .auth-page,
+    .landing-page {
+        margin: 4vh auto !important;
+        width: 92% !important; /* Keeps auth modals safely framed */
+        border-radius: 12px !important;
     }
 }
