@@ -1,4 +1,3 @@
-// --- HELPER FUNCTIONS ---
 const renderIngredients = (ingredients) => {
     if (!ingredients || ingredients.length === 0) return "<li>No ingredients listed.</li>";
     return ingredients.map(line => `<li>${line}</li>`).join("");
@@ -14,13 +13,11 @@ const renderCookingSteps = (instructions) => {
     ).join("");
 };
 
-// --- MAIN COMPONENT ---
 export const createPostCard = (post, postId, currentUser) => {
     const uid = currentUser ? currentUser.uid : null;
     const date = post.createdAt ? post.createdAt.toDate().toDateString() : "Just now";
     const category = post.category || "General";
 
-    // 1. Voting State
     const upvotes = post.upvotedBy || [];
     const downvotes = post.downvotedBy || [];
     const score = upvotes.length - downvotes.length;
@@ -30,21 +27,49 @@ export const createPostCard = (post, postId, currentUser) => {
     const downColor = isDownvoted ? "#7193ff" : "var(--text-sec)";
     const scoreColor = isUpvoted ? "var(--accent-color)" : isDownvoted ? "#7193ff" : "var(--text-main)";
 
-    // 2. Saved State
     const isSaved = window.myBookmarks && window.myBookmarks.includes(postId);
     const saveIcon = isSaved ? "bxs-bookmark" : "bx-bookmark";
     const saveColor = isSaved ? "var(--accent-color)" : "var(--text-main)";
 
-    // 3. Image Logic
     const imageHTML = post.imageUrl 
         ? `<div class="post-img-container"><img src="${post.imageUrl}" class="post-img"></div>`
         : `<div class="post-img-container"><i class='bx bx-dish post-placeholder-icon'></i></div>`;
 
-    // 4. Admin Menu (Only if author)
-    const adminOptions = (currentUser && currentUser.uid === post.authorId) ? `
-        <div onclick="window.openEditPage('${postId}')" class="menu-item-styled"><i class='bx bx-pencil'></i> Edit Post</div>
-        <div onclick="window.deletePost('${postId}')" class="menu-item-styled" style="color: #ff4500;"><i class='bx bx-trash'></i> Delete Post</div>
-    ` : "";
+    // SYSTEM ACCESS RIGHTS
+    const isAuthor = currentUser && currentUser.uid === post.authorId;
+    const isAdmin = window.currentUserData && window.currentUserData.role === 'admin';
+
+    // DYNAMIC DRIVER INTERFACE
+    let menuOptions = `
+        <div onclick="window.toggleBookmark('${postId}')" class="menu-item-styled">
+            <i id="save-icon-${postId}" class='bx ${saveIcon}' style="font-size: 1.1rem; color: ${saveColor};"></i> 
+            <span id="save-text-${postId}">${isSaved ? "Unsave" : "Save"}</span>
+        </div>
+    `;
+
+    if (isAuthor) {
+        menuOptions += `
+            <div onclick="window.openEditPage('${postId}')" class="menu-item-styled"><i class='bx bx-pencil'></i> Edit Post</div>
+            <div onclick="window.deletePost('${postId}')" class="menu-item-styled" style="color: #ff4500;"><i class='bx bx-trash'></i> Delete Post</div>
+        `;
+    } else {
+        // Regular users can report posts
+        menuOptions += `
+            <div onclick="window.reportPost('${postId}')" class="menu-item-styled" style="color: #ffc107;"><i class='bx bx-flag'></i> Report Content</div>
+        `;
+    }
+
+    // Admins get moderation options
+    if (isAdmin) {
+        menuOptions += `
+            <div onclick="window.adminDeletePost('${postId}')" class="menu-item-styled" style="color: #ff4500; font-weight: bold; border-top: 1px solid var(--var-border-color, var(--border-color));"><i class='bx bx-shield-x'></i> Moderate Delete</div>
+        `;
+        if (!isAuthor) {
+            menuOptions += `
+                <div onclick="window.adminBanUser('${post.authorId}', '${(post.authorName || 'User').replace(/'/g, "\\'")}')" class="menu-item-styled" style="color: #ff0000; font-weight: bold;"><i class='bx bx-user-x'></i> Suspend Creator</div>
+            `;
+        }
+    }
 
     return `
         <div id="cooking-mode-${postId}" class="cooking-mode-overlay">
@@ -70,10 +95,7 @@ export const createPostCard = (post, postId, currentUser) => {
                 <div style="position: relative;">
                     <button class="post-menu-btn" onclick="window.togglePostMenu('${postId}')"><i class='bx bx-dots-vertical-rounded' style="font-size: 1.4rem;"></i></button>
                     <div id="menu-${postId}" class="post-menu-content">
-                        <div onclick="window.toggleBookmark('${postId}')" class="menu-item-styled">
-                            <i id="save-icon-${postId}" class='bx ${saveIcon}' style="font-size: 1.1rem; color: ${saveColor};"></i> <span id="save-text-${postId}">${isSaved ? "Unsave" : "Save"}</span>
-                        </div>
-                        ${adminOptions}
+                        ${menuOptions}
                     </div>
                 </div>
             </div>

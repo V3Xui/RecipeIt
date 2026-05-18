@@ -24,19 +24,29 @@ auth.onAuthStateChanged((user) => {
   if (user) {
     listenForUnreadMessages(user.uid);
 
+    // FIX: Set up real-time metadata syncing for roles and active bans
+    db.collection("users").doc(user.uid).onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            window.myBookmarks = data.savedRecipes || [];
+            window.currentUserData = data; // Save role info globally
+
+            // REAL-TIME BAN ENFORCEMENT ENGINE
+            if (data.isBanned === true) {
+                window.showToast("Your account has been suspended by a moderator.", "error");
+                auth.signOut();
+                window.router("/");
+                return;
+            }
+        }
+    });
+
     if (["", "#/", "#/login", "#/register"].includes(window.location.hash)) {
       window.router("/dashboard");
     } else {
         const currentPath = window.location.hash.replace("#", "");
         window.router(currentPath);
     }
-
-    db.collection("users").doc(user.uid).onSnapshot((doc) => {
-        if (doc.exists) {
-            window.myBookmarks = doc.data().savedRecipes || [];
-            if (window.location.hash === "#/saved" && window.loadSavedPosts) window.loadSavedPosts(); 
-        }
-    });
 
     setTimeout(() => {
         const nameSpan = document.getElementById("user-name-display");
@@ -51,10 +61,7 @@ auth.onAuthStateChanged((user) => {
         }
     }, 500);
   } else {
-      // Force redirect to landing or login if unauthenticated
+      window.currentUserData = null;
       window.router("/");
   }
 });
-
-const initialPath = window.location.hash.replace("#", "") || "/";
-window.router(initialPath);

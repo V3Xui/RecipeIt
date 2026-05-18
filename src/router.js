@@ -1,6 +1,7 @@
 import { auth, db } from './config.js';
 import { loadPosts, loadEditForm } from './views/feed.js';
 import { loadAccountSettings, loadSavedPosts, loadShoppingList, loadPublicProfile, loadMenu } from './views/profile.js';
+import { createPostCard } from './components/postCard.js';
 
 // --- HTML VIEW STRING DEFINITIONS ---
 export const LoginView = `
@@ -45,9 +46,11 @@ export const DashboardView = `
     <div class="dashboard-page">
         <div class="category-bar" style="display:flex; gap:10px; overflow-x:auto; padding:5px 0; margin-bottom:15px; scrollbar-width: none;">
             <button class="filter-btn" onclick="window.setCategory('All')" style="background:var(--accent-color); color:white; border-radius:20px; padding:6px 15px;">All</button>
+            <button class="filter-btn" onclick="window.setCategory('Appetizer')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Appetizer</button>
             <button class="filter-btn" onclick="window.setCategory('Breakfast')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Breakfast</button>
             <button class="filter-btn" onclick="window.setCategory('Lunch')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Lunch</button>
             <button class="filter-btn" onclick="window.setCategory('Dinner')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Dinner</button>
+            <button class="filter-btn" onclick="window.setCategory('Dessert')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Dessert</button>
         </div>
         <div style="margin-bottom:15px;">
             <input type="text" id="search-desktop" placeholder="🔍 Search recipes..." oninput="window.filterPosts()" class="create-input" style="margin:0; padding:10px 15px; border-radius:20px;">
@@ -65,9 +68,11 @@ export const CreateView = `
         <span class="form-label">Category</span>
         <select id="post-category" class="create-input" style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background:var(--input-bg); color:var(--text-main); margin-bottom:20px;">
             <option value="General">General</option>
+            <option value="Appetizer">Appetizer</option>
             <option value="Breakfast">Breakfast</option>
             <option value="Lunch">Lunch</option>
             <option value="Dinner">Dinner</option>
+            <option value="Dessert">Dessert</option>
         </select>
 
         <span class="form-label">Description</span>
@@ -122,27 +127,46 @@ export const EditView = `
     </div>
 `;
 
+export const AdminView = `
+    <div class="dashboard-page" style="padding:15px;">
+        <h2 style="margin-bottom:5px;"><i class='bx bx-shield-quarter' style="color:var(--accent-color);"></i> Moderation Panel</h2>
+        <p style="color:var(--text-sec); font-size:0.85rem; margin-bottom:15px;">Review active user flags and reported recipes below.</p>
+        <div id="admin-reports-feed"></div>
+    </div>
+`;
+
 export const SearchView = `
-    <div class="dashboard-page" style="padding:20px;">
+    <div class="dashboard-page" style="padding: 15px;">
         <div id="category-section">
-            <h2 style="margin-bottom:15px;">Browse Categories</h2>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:15px; margin-bottom:20px;">
-                <div onclick="window.setCategory('Breakfast')" style="background:var(--card-bg); border:1px solid var(--border-color); padding:25px; text-align:center; border-radius:12px; cursor:pointer; font-weight:600;"><i class='bx bx-coffee-togo' style='font-size:2rem; color:var(--accent-color); display:block; margin-bottom:5px;'></i>Breakfast</div>
-                <div onclick="window.setCategory('Lunch')" style="background:var(--card-bg); border:1px solid var(--border-color); padding:25px; text-align:center; border-radius:12px; cursor:pointer; font-weight:600;"><i class='bx bx-bowl-rice' style='font-size:2rem; color:var(--accent-color); display:block; margin-bottom:5px;'></i>Lunch</div>
-                <div onclick="window.setCategory('Dinner')" style="background:var(--card-bg); border:1px solid var(--border-color); padding:25px; text-align:center; border-radius:12px; cursor:pointer; font-weight:600;"><i class='bx bx-fridge' style='font-size:2rem; color:var(--accent-color); display:block; margin-bottom:5px;'></i>Dinner</div>
-                <div onclick="window.setCategory('General')" style="background:var(--card-bg); border:1px solid var(--border-color); padding:25px; text-align:center; border-radius:12px; cursor:pointer; font-weight:600;"><i class='bx bx-restaurant' style='font-size:2rem; color:var(--accent-color); display:block; margin-bottom:5px;'></i>General</div>
+            <h2 style="margin-bottom: 12px; font-size: 1.3rem;">Browse Categories</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">
+                <div onclick="window.setCategory('Appetizer')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-cheese' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Appetizer
+                </div>                
+                <div onclick="window.setCategory('Breakfast')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-coffee-togo' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Breakfast
+                </div>                
+                <div onclick="window.setCategory('Lunch')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-bowl-rice' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Lunch
+                </div>                
+                <div onclick="window.setCategory('Dinner')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-fridge' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Dinner
+                </div>                
+                <div onclick="window.setCategory('Dessert')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-cake' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Dessert
+                </div>                
+                <div onclick="window.setCategory('General')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    <i class='bx bx-restaurant' style='font-size: 1.6rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>General
+                </div>                
             </div>
         </div>
-        
-        <div id="search-results-header" style="display:none; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 id="results-title">Recipes</h2>
-            <button onclick="window.resetSearch()" style="background:transparent; color:var(--text-main); border:1px solid var(--border-color); padding:5px 15px; border-radius:20px;">Back</button>
+        <div id="search-results-header" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="results-title" style="font-size: 1.3rem;">Recipes</h2>
+            <button onclick="window.resetSearch()" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">Back</button>
         </div>
-
-        <div style="margin-bottom:15px; display:flex; gap:10px;">
-            <input type="text" id="search-input" placeholder="🔍 Search within category..." oninput="window.performSearch()" class="create-input" style="margin:0; padding:10px 15px; border-radius:20px;">
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <input type="text" id="search-input" placeholder="🔍 Search within category..." oninput="window.performSearch()" class="create-input" style="margin: 0; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem;">
         </div>
-
         <div id="posts-feed"></div>
     </div>
 `;
@@ -247,6 +271,9 @@ export const MenuView = `
             </div>
         </div>
         <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
+            ${window.currentUserData && window.currentUserData.role === 'admin' ? `
+                <div onclick="window.router('/admin')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); background: #ff450010; font-weight:bold;"><i class='bx bx-shield-quarter' style='font-size:1.2rem; color:var(--accent-color);'></i> Moderation Control</div>` : ""}
+            <div onclick="window.router('/saved')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bookmark' style='font-size:1.2rem; color:var(--accent-color);'></i> Saved Recipes</div>
             <div onclick="window.router('/saved')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bookmark' style='font-size:1.2rem; color:var(--accent-color);'></i> Saved Recipes</div>
             <div onclick="window.router('/shopping-list')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-list-check' style='font-size:1.2rem; color:var(--accent-color);'></i> Shopping List</div>
             <div onclick="window.router('/notifications')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bell' style='font-size:1.2rem; color:var(--accent-color);'></i> Notifications</div>
@@ -333,7 +360,8 @@ const routes = {
   "/messages": MessagesView,
   "/chat-room": ChatRoomView,
   "/notifications": NotificationsView,
-  "/menu": MenuView
+  "/menu": MenuView,
+  "/admin": AdminView
 };
 
 window.router = (path) => {
@@ -388,6 +416,7 @@ window.router = (path) => {
   if (path === "/messages") window.loadInbox();
   if (path === "/notifications") window.loadNotifications();
   if (path === "/menu") loadMenu();
+  if (path === "/admin") window.loadAdminDashboard();
 };
 
 const renderView = (html, isMobile) => {
@@ -400,3 +429,48 @@ const renderView = (html, isMobile) => {
 };
 
 window.onpopstate = () => window.router(window.location.hash.replace("#", "") || "/");
+
+window.loadAdminDashboard = () => {
+    const isAdmin = window.currentUserData && window.currentUserData.role === 'admin';
+    if (!isAdmin) {
+        window.showToast("Unauthorized entry blocked.", "error");
+        window.router("/dashboard");
+        return;
+    }
+
+    const panelFeed = document.getElementById("admin-reports-feed");
+    if (!panelFeed) return;
+
+    panelFeed.innerHTML = `<div style="text-align:center; padding:20px;"><i class='bx bx-loader-alt bx-spin' style="font-size:1.5rem; color:var(--accent-color);"></i></div>`;
+
+    // Query for flagged recipes
+    db.collection("posts")
+      .where("reportCount", ">=", 1)
+      .orderBy("reportCount", "desc")
+      .get()
+      .then((snap) => {
+          panelFeed.innerHTML = "";
+          if (snap.empty) {
+              panelFeed.innerHTML = "<p style='text-align:center; color:var(--text-sec); padding:30px;'>No pending reports! The queue is clean. ✨</p>";
+              return;
+          }
+
+          snap.forEach((doc) => {
+              const data = doc.data();
+              const reportHeader = `
+                <div style="background:#ff450015; border-left:4px solid #ff4500; padding:10px; margin-bottom:-20px; border-radius:0 8px 8px 0; font-size:0.85rem; font-weight:bold; color:#ff4500; display:flex; justify-content:space-between; align-items:center;">
+                    <span>⚠️ FLAG NOTIFICATION: Reported ${data.reportCount} times</span>
+                    <button onclick="window.adminDeletePost('${doc.id}')" style="background:#ff4500; padding:4px 10px; font-size:0.75rem; border-radius:4px;">Quick Purge</button>
+                </div>
+              `;
+              panelFeed.insertAdjacentHTML('beforeend', reportHeader);
+              panelFeed.insertAdjacentHTML('beforeend', createPostCard(data, doc.id, auth.currentUser));
+          });
+      })
+      .catch((err) => {
+          console.error("Panel fetch error:", err);
+          if (err.message.includes("index")) {
+              panelFeed.innerHTML = `<p style="font-size:0.8rem; color:red; text-align:center;">This query requires an index. Click the link in the browser console logs to build it.</p>`;
+          }
+      });
+};

@@ -79,7 +79,8 @@ export const loadPublicProfile = (targetUserId) => {
             
             if (currentUser && currentUser.uid !== targetUserId) {
                 db.collection("users").doc(currentUser.uid).onSnapshot((myDoc) => {
-                    const myData = myDoc.data();
+                    // FIX: Provide a fallback layout if the current user profile data is uninitialized
+                    const myData = myDoc.data() || { following: [] };
                     const amFollowing = myData.following && myData.following.includes(targetUserId);
                     const safeName = (data.displayName || 'Chef').replace(/'/g, "\\'");
                     const msgBtn = `<button onclick="window.startChat('${targetUserId}', '${safeName}')" style="background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); margin-left: 10px;">Message</button>`;
@@ -209,16 +210,48 @@ window.removeShoppingItem = (itemText) => {
     if (auth.currentUser && confirm("Remove this item?")) db.collection("users").doc(auth.currentUser.uid).update({ shoppingList: firebase.firestore.FieldValue.arrayRemove(itemText) });
 };
 
-// UPDATED: Toggle Follow now sends notification
-window.toggleFollow = (targetId, shouldFollow) => {
-    const user = auth.currentUser;
-    if (!user) return window.showToast("Please login to follow", "error");
-    const myRef = db.collection("users").doc(user.uid);
-    if (shouldFollow) {
-        myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(targetId) });
-        if (window.sendNotification) window.sendNotification(targetId, "follow", "started following you", `/user/${user.uid}`);
-    } else {
-        myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(targetId) });
+window.toggleFollow = async (targetUserId, targetUserName) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        window.showToast("Please log in to follow chefs!", "error");
+        return;
+    }
+
+    const myDocRef = db.collection("users").doc(currentUser.uid);
+    const theirDocRef = db.collection("users").doc(targetUserId);
+
+    try {
+        const myDoc = await myDocRef.get();
+        // Fallback array handling if document is uninitialized
+        const myData = myDoc.data() || { following: [] };
+        const isFollowing = myData.following && myData.following.includes(targetUserId);
+
+        if (isFollowing) {
+            // Unfollow logic: Switch .update() to .set(..., { merge: true })
+            await myDocRef.set({
+                following: firebase.firestore.FieldValue.arrayRemove(targetUserId)
+            }, { merge: true });
+
+            await theirDocRef.set({
+                followers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+            }, { merge: true });
+
+            window.showToast(`Unfollowed ${targetUserName}`);
+        } else {
+            // Follow logic: Switch .update() to .set(..., { merge: true })
+            await myDocRef.set({
+                following: firebase.firestore.FieldValue.arrayUnion(targetUserId)
+            }, { merge: true });
+
+            await theirDocRef.set({
+                followers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+            }, { merge: true });
+
+            window.showToast(`Following ${targetUserName}!`, "success");
+        }
+    } catch (error) {
+        console.error("Follow Toggle Error:", error);
+        window.showToast("Could not complete follow action.", "error");
     }
 };
 

@@ -353,12 +353,41 @@ window.toggleComments = (id) => {
   } else { s.style.display = "none"; }
 };
 
-window.sharePost = (postId) => {
+let isSharing = false;
+
+window.sharePost = async (postId) => {
+    // If a share is already active, ignore any double-clicks
+    if (isSharing) return;
+    isSharing = true;
+
     const title = document.getElementById(`title-${postId}`)?.innerText || "Recipeit";
     const text = `Check out this recipe: "${title}"`;
     const url = window.location.href;
-    if (navigator.share) navigator.share({ title: "Recipeit", text, url }).catch(console.log);
-    else navigator.clipboard.writeText(`${text} - ${url}`).then(() => window.showToast("Link copied!", "success"));
+
+    if (navigator.share) {
+        try {
+            // Wait for the native share sheet promise to fully resolve or reject
+            await navigator.share({ title: "Recipeit", text, url });
+        } catch (error) {
+            // Catch and silence 'AbortError' since it just means the user cancelled the menu
+            if (error.name !== 'AbortError') {
+                console.error("Share failed:", error);
+            }
+        } finally {
+            // ALWAYS unlock the button when finished
+            isSharing = false;
+        }
+    } else {
+        // Fallback for browsers that don't support native sharing (desktop Chrome/Firefox)
+        try {
+            await navigator.clipboard.writeText(`${text} - ${url}`);
+            window.showToast("Link copied!", "success");
+        } catch (err) {
+            console.error("Clipboard copy failed:", err);
+        } finally {
+            isSharing = false;
+        }
+    }
 };
 
 window.togglePostMenu = (postId) => {
@@ -447,4 +476,47 @@ window.performSearch = () => {
         const text = card.innerText.toLowerCase();
         card.style.display = text.includes(term) ? "block" : "none";
     });
+};
+
+// Append directly to the end of src/views/feed.js
+
+window.reportPost = (postId) => {
+    db.collection("posts").doc(postId).update({
+        reportCount: firebase.firestore.FieldValue.increment(1)
+    })
+    .then(() => {
+        window.showToast("Post has been reported for evaluation.", "success");
+        // Hide open dropdown menus
+        document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
+    })
+    .catch(err => console.error("Report execution failed:", err));
+};
+
+window.adminDeletePost = (postId) => {
+    if (confirm("ADMIN CONTROL: Are you absolutely sure you want to permanently delete this post?")) {
+        db.collection("posts").doc(postId).delete()
+        .then(() => {
+            window.showToast("Post successfully moderated and removed.", "success");
+            // If viewing the admin control dashboard panel, reload the window target
+            if (window.location.hash === "#/admin") {
+                window.loadAdminDashboard();
+            } else {
+                window.router("/dashboard");
+            }
+        })
+        .catch(err => window.showToast("Moderation deletion failed: " + err.message, "error"));
+    }
+};
+
+window.adminBanUser = (targetUserId, userName) => {
+    if (confirm(`ADMIN CONTROL: Suspend account permissions for ${userName}?`)) {
+        db.collection("users").doc(targetUserId).set({
+            isBanned: true
+        }, { merge: true })
+        .then(() => {
+            window.showToast(`${userName} has been successfully suspended.`, "success");
+            document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
+        })
+        .catch(err => window.showToast("Suspension execution error: " + err.message, "error"));
+    }
 };
