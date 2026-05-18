@@ -1,7 +1,3 @@
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
-
 const firebaseConfig = {
   apiKey: "AIzaSyCXY0mod0qLck1_SuBN4AzqJfSkPKoo6IQ",
   authDomain: "recipeit-2dee7.firebaseapp.com",
@@ -12,23 +8,11 @@ const firebaseConfig = {
   measurementId: "G-PHZPRR2N4R"
 };
 
-// Initialize Firebase safely
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+if (!window.firebase.apps.length) {
+    window.firebase.initializeApp(firebaseConfig);
 }
 
-export const auth = firebase.auth();
-export const db = firebase.firestore();
+export const auth = window.firebase.auth();
+export const db = window.firebase.firestore();
 
-// Attach globally for your side-effect views to use FieldValue references
 window.firebase = firebase;
-
-// Enable Offline Persistence
-db.enablePersistence()
-  .catch((err) => {
-      if (err.code == 'failed-precondition') {
-          console.log('Persistence failed: Multiple tabs open');
-      } else if (err.code == 'unimplemented') {
-          console.log('Persistence not supported by browser');
-      }
-  });

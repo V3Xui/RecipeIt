@@ -8,7 +8,14 @@ export const LoginView = `
         <h1>Log In</h1>
         <input type="email" id="login-email" placeholder="Email">
         <input type="password" id="login-pass" placeholder="Password">
-        <button onclick="window.loginUser()">Log In</button>
+        <button onclick="window.loginUser()" style="width:100%;">Log In</button>
+        
+        <div style="margin: 15px 0; text-align: center; color: var(--text-sec); font-size: 0.9rem;">OR</div>
+        
+        <button onclick="window.loginWithGoogle()" style="width:100%; background: #4285F4; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class='bx bxl-google' style="font-size: 1.3rem;"></i> Continue with Google
+        </button>
+
         <p style="margin-top:15px; font-size:0.9rem;">Don't have an account? <a onclick="window.router('/register')" style="color:var(--accent-color); cursor:pointer;">Sign Up</a></p>
     </div>
 `;
@@ -19,7 +26,14 @@ export const RegisterView = `
         <input type="text" id="reg-username" placeholder="Username">
         <input type="email" id="reg-email" placeholder="Email">
         <input type="password" id="reg-pass" placeholder="Password">
-        <button onclick="window.registerUser()">Sign Up</button>
+        <button onclick="window.registerUser()" style="width:100%;">Sign Up</button>
+        
+        <div style="margin: 15px 0; text-align: center; color: var(--text-sec); font-size: 0.9rem;">OR</div>
+        
+        <button onclick="window.loginWithGoogle()" style="width:100%; background: #4285F4; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class='bx bxl-google' style="font-size: 1.3rem;"></i> Sign up with Google
+        </button>
+
         <p style="margin-top:15px; font-size:0.9rem;">Already have an account? <a onclick="window.router('/login')" style="color:var(--accent-color); cursor:pointer;">Log In</a></p>
     </div>
 `;
@@ -152,7 +166,7 @@ export const ChatRoomView = `
             <button onclick="window.sendChatMessage()" style="border-radius:50%; width:45px; height:45px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i class='bx bx-send' style='font-size:1.2rem;'></i></button>
         </div>
     </div>
-```;
+`;
 
 export const AccountSettingsView = `
     <div class="create-post-page" style="padding:20px;">

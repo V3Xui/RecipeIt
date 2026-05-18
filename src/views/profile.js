@@ -1,5 +1,5 @@
-import { auth, db } from './config.js';
-import { createPostCard } from '../components/PostCard.js';
+import { auth, db } from '../config.js';
+import { createPostCard } from '../components/postCard.js';
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 

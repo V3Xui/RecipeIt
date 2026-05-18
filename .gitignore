@@ -5,3 +5,8 @@ Thumbs.db
 # Local environment or IDE files
 .vscode/
 .idea/
+
+# Firebase generated files
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
