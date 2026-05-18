@@ -1,0 +1,718 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
+
+:root {
+    /* LIGHT THEME (Default) */
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-main: #050505;
+    --text-sec: #65676b;
+    --border-color: #ddd;
+    --accent-color: #ff4500;
+    --input-bg: #ffffff;
+    --nav-bg: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+    /* DARK THEME */
+    --bg-color: #18191a;
+    --card-bg: #242526;
+    --text-main: #e4e6eb;
+    --text-sec: #b0b3b8;
+    --border-color: #3e4042;
+    --accent-color: #ff4500;
+    /* Keep orange or change to #ff642e */
+    --input-bg: #3a3b3c;
+    --nav-bg: #242526;
+    --shadow: rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Container */
+#app {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 0;
+}
+
+/* Cards (Login, Create, etc) */
+.landing-page,
+.auth-page,
+.create-post-page,
+.post-card,
+.dashboard-page {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+}
+
+.landing-page,
+.auth-page {
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+/* Inputs */
+input,
+textarea {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+/* Buttons */
+button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Navbar */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+.nav-brand {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    cursor: pointer;
+}
+
+.nav-items {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 20px;
+}
+
+.nav-link:hover {
+    background-color: var(--bg-color);
+}
+
+/* Posts */
+#posts-feed {
+    max-width: 600px;
+}
+
+.post-card {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+}
+
+.post-meta {
+    font-size: 0.8rem;
+    color: var(--text-sec);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.post-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+/* Details & Comments */
+details {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.comment-item {
+    background: var(--bg-color) !important;
+    color: var(--text-main);
+}
+
+/* --- FIXES FOR ICONS & DARK MODE --- */
+
+/* 1. Reset the Vote Buttons so they aren't Orange Blocks */
+.btn-vote {
+    background-color: transparent !important;
+    /* Force transparent */
+    padding: 0 5px !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.btn-vote:hover {
+    background-color: var(--bg-color) !important;
+    /* Light hover effect */
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* 2. Fix Edit/Delete Icons (Top Right of card) */
+.btn-icon {
+    background-color: transparent !important;
+    color: var(--text-sec) !important;
+    padding: 5px;
+    font-size: 1.2rem;
+}
+
+.btn-icon:hover {
+    color: var(--accent-color) !important;
+}
+
+/* 3. Comment Button styling */
+.btn-comment {
+    background-color: var(--bg-color) !important;
+    color: var(--text-sec) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 4. Fix Input/Textarea text color in Dark Mode */
+input,
+textarea {
+    color: var(--text-main) !important;
+}
+
+/* 5. Fix Links inside Details/Lists */
+li {
+    line-height: 1.6;
+}
+
+/* --- FORM STYLES --- */
+.create-input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.3s;
+    box-sizing: border-box;
+}
+
+.create-input:focus {
+    border-color: var(--accent-color);
+}
+
+.form-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-sec);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: block;
+    text-transform: uppercase;
+}
+
+.create-grid {
+    display: flex;
+    gap: 15px;
+}
+
+.create-btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.create-btn-group button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.1s;
+}
+
+.create-btn-group button:active {
+    transform: scale(0.98);
+}
+
+/* --- TOAST NOTIFICATIONS --- */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 90%;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.toast {
+    background: var(--card-bg);
+    color: var(--text-main);
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-left: 5px solid var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideUp 0.3s ease-out forwards;
+    pointer-events: auto;
+}
+
+.toast.error {
+    border-left-color: #ff4500;
+}
+
+.toast.success {
+    border-left-color: #4caf50;
+}
+
+/* --- SKELETON LOADING --- */
+.skeleton {
+    background: #eee;
+    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+    border-radius: 5px;
+    background-size: 200% 100%;
+    animation: 1.5s shine linear infinite;
+}
+
+.skeleton-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.sk-img {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 10px;
+}
+
+.sk-text {
+    height: 15px;
+    width: 80%;
+    margin-bottom: 8px;
+}
+
+.sk-text-short {
+    height: 15px;
+    width: 40%;
+}
+
+/* --- RECIPE FEATURES --- */
+.portion-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+    background: var(--bg-color);
+    padding: 10px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+.portion-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-main);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.portion-btn:active {
+    background: var(--border-color);
+}
+
+.cooking-mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--card-bg);
+    color: var(--text-main);
+    z-index: 20000;
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.cooking-step {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1.6;
+}
+
+.cooking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 15px;
+}
+
+.close-cooking {
+    background: var(--text-main);
+    color: var(--bg-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* --- POST CARD COMPONENTS --- */
+.post-card {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.post-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.post-category-tag {
+    font-size: 0.7rem;
+    background: var(--accent-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.post-date {
+    font-size: 0.75rem;
+}
+
+.post-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+/* Dropdown Menu */
+.post-menu-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 30px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    width: 160px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.menu-item-styled {
+    padding: 12px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    transition: background 0.2s;
+}
+
+.menu-item-styled:hover {
+    background-color: var(--bg-color);
+}
+
+/* Image Container */
+.post-img-container {
+    width: 100%;
+    height: 300px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.post-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.post-placeholder-icon {
+    font-size: 5rem;
+    color: var(--border-color);
+}
+
+/* Actions & Buttons */
+.post-actions {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.btn-vote {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s;
+}
+
+.btn-vote:active {
+    transform: scale(1.2);
+}
+
+.action-btn {
+    background-color: var(--bg-color);
+    color: var(--text-sec);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.2s;
+}
+
+.action-btn:hover {
+    background-color: var(--border-color);
+    color: var(--text-main);
+}
+
+/* Details Section */
+.post-details {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.post-details summary {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.details-btn {
+    font-size: 0.8rem;
+    background: var(--bg-color);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.details-btn.primary {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+}
+
+.comments-section {
+    display: none;
+    margin-top: 15px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+}
+
+.comment-input-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* --- ANIMATIONS & MEDIA QUERIES --- */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes shine {
+    to {
+        background-position-x: -200%;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-grid {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .create-post-page {
+        padding: 20px !important;
+        margin-top: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+
+    /* 1. Move Navbar to Bottom */
+    nav {
+        top: auto;
+        bottom: 0;
+        border-bottom: none;
+        border-top: 1px solid var(--border-color);
+        height: 60px;
+        padding: 0 10px;
+        justify-content: space-around;
+        /* Spread items out */
+    }
+
+    /* 2. Hide the "Recipeit" Logo to save space */
+    .nav-brand {
+        display: none;
+    }
+
+    /* 3. Make Nav Items take full width */
+    .nav-items {
+        width: 100%;
+        justify-content: space-between;
+        padding: 0 15px;
+    }
+
+    /* 4. Hide Text Labels (Icons only) */
+    .nav-text {
+        display: none;
+    }
+
+    /* 5. Big Icons for touch targets */
+    .nav-link i {
+        font-size: 1.6rem;
+    }
+
+    /* 6. Adjust Page Spacing */
+    #app {
+        padding-bottom: 80px !important;
+        /* Add bottom gap so nav doesn't cover content */
+        align-items: flex-start;
+        /* Allow scrolling from top */
+    }
+
+    /* 7. Full width Dashboard on Mobile */
+    .dashboard-page,
+    #posts-feed {
+        width: 100%;
+        max-width: 100%;
+        border: none;
+        /* Remove border on mobile for cleaner look */
+        box-shadow: none;
+        background: transparent;
+    }
+
+    /* 8. Fix Search Bar padding */
+    .dashboard-page>div:first-child {
+        padding: 0 15px;
+    }
+}
