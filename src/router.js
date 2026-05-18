@@ -456,7 +456,7 @@ window.loadAdminDashboard = () => {
               const data = doc.data();
               // FIX: Added a green "Mark Safe" button next to "Quick Purge"
               const reportHeader = `
-                <div style="background:#ff450015; border-left:4px solid #ff4500; padding:10px; margin-bottom:-20px; border-radius:0 8px 8px 0; font-size:0.85rem; font-weight:bold; color:#ff4500; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:#ff450015; border-left:4px solid #ff4500; padding:10px; margin-bottom:20px; border-radius:0 8px 8px 0; font-size:0.85rem; font-weight:bold; color:#ff4500; display:flex; justify-content:space-between; align-items:center;">
                     <span>⚠️ FLAG NOTIFICATION: Reported ${data.reportCount} times</span>
                     <div style="display:flex; gap:8px;">
                         <button onclick="window.adminMarkSafe('${doc.id}')" style="background:#4caf50; color:white; border:none; padding:5px 12px; font-size:0.75rem; border-radius:20px; cursor:pointer; font-weight:600;">Mark Safe</button>

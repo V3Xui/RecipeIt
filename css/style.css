@@ -579,14 +579,21 @@ li {
     background-color: var(--bg-color);
     color: var(--text-sec);
     border: 1px solid var(--border-color);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    cursor: pointer;
+    
+    /* FIX: Force an exact circle interaction target footprint */
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    
+    /* Center the icon accurately within the target ring */
     display: flex;
     align-items: center;
-    gap: 5px;
-    transition: 0.2s;
+    justify-content: center;
+    
+    /* Bump up icon scale slightly for balance */
+    font-size: 1.15rem; 
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .action-btn:hover {

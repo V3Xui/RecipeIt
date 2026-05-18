@@ -129,8 +129,8 @@ export const createPostCard = (post, postId, currentUser) => {
                 <button id="btn-down-${postId}" class="btn-vote" onclick="window.votePost('${postId}', 'down')" style="color: ${downColor}"><i class='bx bxs-down-arrow-circle' style="font-size: 1.5rem;"></i></button>
                 
                 <div style="margin-left: auto; display: flex; gap: 8px;">
-                    <button class="action-btn" onclick="window.toggleComments('${postId}')"><i class='bx bx-message-rounded'></i> Comment</button>
-                    <button class="action-btn" onclick="window.sharePost('${postId}')"><i class='bx bx-share-alt'></i> Share</button>
+                    <button class="action-btn" onclick="window.toggleComments('${postId}')" title="View Comments"><i class='bx bx-message-rounded'></i></button>
+                    <button class="action-btn" onclick="window.sharePost('${postId}')" title="Share Recipe"><i class='bx bx-share-alt'></i></button>
                 </div>
             </div>
 
