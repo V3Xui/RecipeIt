@@ -1,4 +1,4 @@
-import { auth, db } from '../js/config.js';
+import { auth, db } from '../config.js';
 
 export const initTheme = () => {
     const savedTheme = localStorage.getItem('theme') || 'light';

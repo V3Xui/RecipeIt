@@ -1,28 +1,21 @@
 import { auth, db } from './config.js';
-import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './navBar.js';
-import './auth.js';
-import './feed.js';
-import './profile.js';
+// FIX: Corrected folder path mappings
+import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './components/navBar.js';
+import './services/auth.js';
+import './views/feed.js';
+import './views/profile.js';
 import './router.js';
-import './chat.js';
+import './views/chat.js';
 
 setupDropdownStyles();
 initTheme();
 
-// --- NEW: PWA SETUP ---
-// 1. Inject Manifest Link dynamically
-const link = document.createElement('link');
-link.rel = 'manifest';
-navigator.serviceWorker.register('./sw.js')
-document.head.appendChild(link);
-
-// 2. Register Service Worker
+// --- PWA SETUP ---
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/serviceWorker.js')
         .then(() => console.log('PWA Service Worker Registered'))
         .catch((err) => console.log('SW Failed:', err));
 }
-// ----------------------
 
 window.myBookmarks = [];
 
@@ -53,21 +46,15 @@ auth.onAuthStateChanged((user) => {
             db.collection("users").doc(user.uid).get().then((doc) => {
                 if (doc.exists && doc.data().bio) {
                     bioDisplay.innerText = doc.data().bio;
-                    bioDisplay.style.color = "#666";
-                    bioDisplay.style.fontStyle = "italic";
                 }
             });
         }
     }, 500);
+  } else {
+      // Force redirect to landing or login if unauthenticated
+      window.router("/");
   }
 });
 
 const initialPath = window.location.hash.replace("#", "") || "/";
 window.router(initialPath);
-
-document.addEventListener('deviceready', onDeviceReady, false);
-
-function onDeviceReady() {
-    // Start your app logic here (e.g., initializing your router.js)
-    console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
-}

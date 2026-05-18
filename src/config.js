@@ -1,3 +1,7 @@
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCXY0mod0qLck1_SuBN4AzqJfSkPKoo6IQ",
   authDomain: "recipeit-2dee7.firebaseapp.com",
@@ -8,11 +12,18 @@ const firebaseConfig = {
   measurementId: "G-PHZPRR2N4R"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase safely
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
 export const auth = firebase.auth();
 export const db = firebase.firestore();
 
-// --- ENABLE OFFLINE PERSISTENCE ---
+// Attach globally for your side-effect views to use FieldValue references
+window.firebase = firebase;
+
+// Enable Offline Persistence
 db.enablePersistence()
   .catch((err) => {
       if (err.code == 'failed-precondition') {

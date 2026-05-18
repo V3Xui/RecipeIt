@@ -1,5 +1,5 @@
-import { auth, db } from './config.js';
-import { createPostCard } from '../components/PostCard.js';
+import { auth, db } from '../config.js';
+import { createPostCard } from '../components/postCard.js';
 
 // --- STATE MANAGEMENT ---
 window.editingPostId = null;

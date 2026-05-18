@@ -1,4 +1,4 @@
-import { auth, db } from './config.js';
+import { auth, db } from '../config.js';
 
 window.startChat = (targetUserId, targetUserName) => {
     const user = auth.currentUser;
