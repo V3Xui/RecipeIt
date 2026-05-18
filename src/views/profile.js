@@ -259,16 +259,33 @@ export const loadMenu = () => {
     const user = auth.currentUser;
     if (!user) return window.router("/");
     
-    // Fill in the menu details
     setTimeout(() => {
         const img = document.getElementById("menu-avatar");
         const name = document.getElementById("menu-name");
         const themeIcon = document.getElementById("menu-theme-icon");
+        const optionsList = document.getElementById("menu-options-list");
         
         if (img) img.src = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
         if (name) name.innerText = user.displayName || user.email;
         
-        // Set correct theme icon
+        // FIX: Real-time authorization check injection block
+        if (optionsList && window.currentUserData && window.currentUserData.role === 'admin') {
+            // Guard statement to prevent duplicate button renders on back-and-forth navigations
+            if (!document.getElementById("admin-menu-item")) {
+                const adminItem = document.createElement("div");
+                adminItem.id = "admin-menu-item";
+                adminItem.className = "menu-item-styled";
+                adminItem.style.borderBottom = "1px solid var(--border-color)";
+                adminItem.style.background = "#ff450010";
+                adminItem.style.fontWeight = "bold";
+                adminItem.onclick = () => window.router('/admin');
+                adminItem.innerHTML = `<i class='bx bx-shield-quarter' style='font-size:1.2rem; color:var(--accent-color);'></i> Moderation Control`;
+                
+                // Prepend pushes it directly to the top of the option rows list container
+                optionsList.prepend(adminItem);
+            }
+        }
+        
         const currentTheme = localStorage.getItem('theme') || 'light';
         if(themeIcon) themeIcon.className = currentTheme === 'dark' ? 'bx bx-sun' : 'bx bx-moon';
     }, 50);

@@ -270,10 +270,7 @@ export const MenuView = `
                 <a onclick="window.router('/account')" style="font-size:0.85rem; color:var(--accent-color); cursor:pointer; font-weight:600;">View & Edit Profile</a>
             </div>
         </div>
-        <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
-            ${window.currentUserData && window.currentUserData.role === 'admin' ? `
-                <div onclick="window.router('/admin')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); background: #ff450010; font-weight:bold;"><i class='bx bx-shield-quarter' style='font-size:1.2rem; color:var(--accent-color);'></i> Moderation Control</div>` : ""}
-            <div onclick="window.router('/saved')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bookmark' style='font-size:1.2rem; color:var(--accent-color);'></i> Saved Recipes</div>
+        <div id="menu-options-list" style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
             <div onclick="window.router('/saved')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bookmark' style='font-size:1.2rem; color:var(--accent-color);'></i> Saved Recipes</div>
             <div onclick="window.router('/shopping-list')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-list-check' style='font-size:1.2rem; color:var(--accent-color);'></i> Shopping List</div>
             <div onclick="window.router('/notifications')" class="menu-item-styled" style="border-bottom:1px solid var(--border-color);"><i class='bx bx-bell' style='font-size:1.2rem; color:var(--accent-color);'></i> Notifications</div>
@@ -457,10 +454,14 @@ window.loadAdminDashboard = () => {
 
           snap.forEach((doc) => {
               const data = doc.data();
+              // FIX: Added a green "Mark Safe" button next to "Quick Purge"
               const reportHeader = `
                 <div style="background:#ff450015; border-left:4px solid #ff4500; padding:10px; margin-bottom:-20px; border-radius:0 8px 8px 0; font-size:0.85rem; font-weight:bold; color:#ff4500; display:flex; justify-content:space-between; align-items:center;">
                     <span>⚠️ FLAG NOTIFICATION: Reported ${data.reportCount} times</span>
-                    <button onclick="window.adminDeletePost('${doc.id}')" style="background:#ff4500; padding:4px 10px; font-size:0.75rem; border-radius:4px;">Quick Purge</button>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="window.adminMarkSafe('${doc.id}')" style="background:#4caf50; color:white; border:none; padding:5px 12px; font-size:0.75rem; border-radius:20px; cursor:pointer; font-weight:600;">Mark Safe</button>
+                        <button onclick="window.adminDeletePost('${doc.id}')" style="background:#ff4500; color:white; border:none; padding:5px 12px; font-size:0.75rem; border-radius:20px; cursor:pointer; font-weight:600;">Quick Purge</button>
+                    </div>
                 </div>
               `;
               panelFeed.insertAdjacentHTML('beforeend', reportHeader);
@@ -473,4 +474,45 @@ window.loadAdminDashboard = () => {
               panelFeed.innerHTML = `<p style="font-size:0.8rem; color:red; text-align:center;">This query requires an index. Click the link in the browser console logs to build it.</p>`;
           }
       });
+};
+
+window.customConfirm = (message) => {
+    return new Promise((resolve) => {
+        let modal = document.getElementById('custom-confirm-modal');
+        
+        // If container doesn't exist yet, construct it dynamically
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'custom-confirm-modal';
+            modal.className = 'modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="modal-card">
+                <h3><i class='bx bx-shield-quarter' style='color:var(--accent-color); font-size:1.3rem;'></i> System Control</h3>
+                <p>${message}</p>
+                <div class="modal-btn-group">
+                    <button id="confirm-cancel-btn" class="modal-btn-cancel">Cancel</button>
+                    <button id="confirm-ok-btn" class="modal-btn-confirm">Confirm</button>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+
+        const cleanUpAndResolve = (result) => {
+            modal.style.display = 'none';
+            resolve(result);
+        };
+
+        // Event hooks
+        modal.querySelector('#confirm-cancel-btn').onclick = () => cleanUpAndResolve(false);
+        modal.querySelector('#confirm-ok-btn').onclick = () => cleanUpAndResolve(true);
+        
+        // Optional safety check: close if clicking outside card content boundaries
+        modal.onclick = (e) => {
+            if (e.target === modal) cleanUpAndResolve(false);
+        };
+    });
 };

@@ -334,11 +334,16 @@ export const loadEditForm = () => {
     });
 };
 
-window.deletePost = (id) => {
-  if (confirm("Delete this post?")) db.collection("posts").doc(id).delete().then(() => {
-      document.getElementById("posts-feed").innerHTML = ""; 
-      loadPosts(); 
-  });
+window.deletePost = async (id) => {
+  // FIX: Swapped out browser native confirm box for our custom modal dialog box
+  const confirmed = await window.customConfirm("Delete this post?");
+
+  if (confirmed) {
+      db.collection("posts").doc(id).delete().then(() => {
+          document.getElementById("posts-feed").innerHTML = ""; 
+          loadPosts(); 
+      });
+  }
 };
 
 window.toggleComments = (id) => {
@@ -492,12 +497,14 @@ window.reportPost = (postId) => {
     .catch(err => console.error("Report execution failed:", err));
 };
 
-window.adminDeletePost = (postId) => {
-    if (confirm("ADMIN CONTROL: Are you absolutely sure you want to permanently delete this post?")) {
+window.adminDeletePost = async (postId) => {
+    // FIX: Swapped out browser native confirm box for our custom modal dialog box
+    const confirmed = await window.customConfirm("ADMIN CONTROL: Are you absolutely sure you want to permanently delete this post?");
+    
+    if (confirmed) {
         db.collection("posts").doc(postId).delete()
         .then(() => {
             window.showToast("Post successfully moderated and removed.", "success");
-            // If viewing the admin control dashboard panel, reload the window target
             if (window.location.hash === "#/admin") {
                 window.loadAdminDashboard();
             } else {
@@ -508,8 +515,33 @@ window.adminDeletePost = (postId) => {
     }
 };
 
-window.adminBanUser = (targetUserId, userName) => {
-    if (confirm(`ADMIN CONTROL: Suspend account permissions for ${userName}?`)) {
+window.adminMarkSafe = async (postId) => {
+    // Leverage your custom theme confirm dialog
+    const confirmed = await window.customConfirm("ADMIN CONTROL: Are you sure you want to dismiss all user flags and mark this recipe as safe?");
+    
+    if (confirmed) {
+        db.collection("posts").doc(postId).update({
+            reportCount: 0
+        })
+        .then(() => {
+            window.showToast("Recipe approved! Reports successfully cleared.", "success");
+            
+            // Instantly refresh the view context
+            if (window.location.hash === "#/admin") {
+                window.loadAdminDashboard();
+            } else {
+                window.router("/dashboard");
+            }
+        })
+        .catch(err => window.showToast("Failed to clear flags: " + err.message, "error"));
+    }
+};
+
+window.adminBanUser = async (targetUserId, userName) => {
+    // FIX: Swapped out browser native confirm box for our custom modal dialog box
+    const confirmed = await window.customConfirm(`ADMIN CONTROL: Suspend account permissions for ${userName}?`);
+    
+    if (confirmed) {
         db.collection("users").doc(targetUserId).set({
             isBanned: true
         }, { merge: true })
