@@ -85,7 +85,6 @@ export const loadPosts = () => {
   const feedContainer = document.getElementById("posts-feed");
   if (!feedContainer) return;
 
-  // Initialize Pull-to-Refresh whenever dashboard loads
   initPullToRefresh();
 
   feedContainer.innerHTML = "";
@@ -93,6 +92,9 @@ export const loadPosts = () => {
   isFetching = false;
   hasMorePosts = true;
   window.currentCategory = "All";
+  
+  // MODULE 3 EXTENSION: RESET TIMELINE SHIFT CONFIGURATIONS
+  window.activeTimelineDietFilter = null; 
 
   getNextBatch();
 
@@ -596,5 +598,90 @@ window.adminBanUser = async (targetUserId, userName) => {
             document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
         })
         .catch(err => window.showToast("Suspension execution error: " + err.message, "error"));
+    }
+};
+
+window.setDietaryFilter = (diet) => {
+    // Hide browse options grid and trigger search headers layout view
+    const catSection = document.getElementById("category-section");
+    const resultHeader = document.getElementById("search-results-header");
+    const resultTitle = document.getElementById("results-title");
+    
+    if (catSection) catSection.style.display = "none";
+    if (resultHeader) resultHeader.style.display = "flex";
+    if (resultTitle) resultTitle.innerText = `${diet} Menu`;
+
+    const feedContainer = document.getElementById("posts-feed");
+    feedContainer.innerHTML = `<div style="text-align:center; padding:40px;"><i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:var(--accent-color);"></i></div>`;
+    
+    // MODULE 3 DATA RETRIEVAL PIPELINE: FETCH TARGET LIFECYCLE ARRAY TRACKS
+    db.collection("posts")
+        .where("dietaryTags", "array-contains", diet)
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get()
+        .then((snap) => {
+            feedContainer.innerHTML = "";
+            if (snap.empty) {
+                feedContainer.innerHTML = `<div style='text-align:center; padding:20px; color:var(--text-sec);'>No verified ${diet} recipes found.</div>`;
+                return;
+            }
+            snap.forEach(doc => {
+                feedContainer.insertAdjacentHTML('beforeend', createPostCard(doc.data(), doc.id, auth.currentUser));
+            });
+        })
+        .catch(err => {
+            console.error("Dietary lookup crash:", err);
+            if (err.message.includes("index")) {
+                feedContainer.innerHTML = `<p style="font-size:0.8rem; color:red; padding:15px; text-align:center;">This query requires a Firestore index. Check browser console logs for the automatic generation URL link.</p>`;
+            } else {
+                window.showToast("Error filtering diet structure", "error");
+            }
+        });
+};
+
+window.activeTimelineDietFilter = null;
+
+window.toggleTimelineDiet = (diet) => {
+    const chip = document.getElementById(`chip-${diet}`);
+    const allChips = document.querySelectorAll('.diet-chip-btn');
+    
+    // Toggle active logic state
+    if (window.activeTimelineDietFilter === diet) {
+        window.activeTimelineDietFilter = null;
+        if (chip) chip.classList.remove('active-chip');
+    } else {
+        window.activeTimelineDietFilter = diet;
+        allChips.forEach(c => c.classList.remove('active-chip'));
+        if (chip) chip.classList.add('active-chip');
+    }
+
+    // Sweep across active post cards inside the DOM workspace
+    const cards = document.querySelectorAll('.post-card');
+    cards.forEach(card => {
+        if (!window.activeTimelineDietFilter) {
+            // No filter active, ensure all recipes are visible
+            card.style.display = "block";
+            return;
+        }
+
+        // Check if the individual card rendering contains our target diet pill badge text element
+        const dietBadges = card.querySelectorAll('.post-diet-badge');
+        let matchesDiet = false;
+        
+        dietBadges.forEach(badge => {
+            if (badge.innerText === window.activeTimelineDietFilter.toUpperCase()) {
+                matchesDiet = true;
+            }
+        });
+
+        // Toggle card footprint
+        card.style.display = matchesDiet ? "block" : "none";
+    });
+    
+    // Give feedback notice if the visibility sweep yields an empty viewport state
+    const visibleCards = Array.from(cards).filter(c => c.style.display !== "none");
+    if (window.activeTimelineDietFilter && visibleCards.length === 0) {
+        window.showToast(`No ${diet} items currently loaded on feed.`, "normal");
     }
 };

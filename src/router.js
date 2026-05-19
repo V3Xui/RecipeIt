@@ -43,7 +43,7 @@ export const DashboardView = `
     <div id="refresh-loader" style="height:0px; overflow:hidden; text-align:center; transition: height 0.2s; opacity:0; background:var(--card-bg);">
         <i class='bx bx-loader-alt bx-spin' style='font-size:1.5rem; margin-top:15px; color:var(--accent-color);'></i>
     </div>
-    <div class="dashboard-page">
+    <div class="dashboard-page" style="padding: 15px;">
         <div class="category-bar" style="display:flex; gap:10px; overflow-x:auto; padding:5px 0; margin-bottom:15px; scrollbar-width: none;">
             <button class="filter-btn" onclick="window.setCategory('All')" style="background:var(--accent-color); color:white; border-radius:20px; padding:6px 15px;">All</button>
             <button class="filter-btn" onclick="window.setCategory('Appetizer')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Appetizer</button>
@@ -52,9 +52,77 @@ export const DashboardView = `
             <button class="filter-btn" onclick="window.setCategory('Dinner')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Dinner</button>
             <button class="filter-btn" onclick="window.setCategory('Dessert')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); border-radius:20px; padding:6px 15px;">Dessert</button>
         </div>
-        <div style="margin-bottom:15px;">
+        <div style="margin-bottom:12px;">
             <input type="text" id="search-desktop" placeholder="🔍 Search recipes..." oninput="window.filterPosts()" class="create-input" style="margin:0; padding:10px 15px; border-radius:20px;">
         </div>
+
+        <div class="timeline-diet-bar" style="display:flex; gap:8px; overflow-x:auto; margin-bottom:15px; scrollbar-width:none; padding-bottom:2px;">
+            <span style="font-size:0.8rem; color:var(--text-sec); display:flex; align-items:center; font-weight:600; white-space:nowrap; margin-right:4px;">✨ Preferences:</span>
+            <button class="diet-chip-btn" id="chip-Keto" onclick="window.toggleTimelineDiet('Keto')">Keto</button>
+            <button class="diet-chip-btn" id="chip-Vegan" onclick="window.toggleTimelineDiet('Vegan')">Vegan</button>
+            <button class="diet-chip-btn" id="chip-Vegetarian" onclick="window.toggleTimelineDiet('Vegetarian')">Vegetarian</button>
+            <button class="diet-chip-btn" id="chip-Gluten-Free" onclick="window.toggleTimelineDiet('Gluten-Free')">Gluten-Free</button>
+            <button class="diet-chip-btn" id="chip-Low-Sodium" onclick="window.toggleTimelineDiet('Low-Sodium')">Low-Sodium</button>
+        </div>
+
+        <div id="posts-feed"></div>
+    </div>
+`;
+
+export const SearchView = `
+    <div class="dashboard-page" style="padding: 15px;">
+        <div id="category-section">
+            <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Browse Course</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div onclick="window.setCategory('Appetizer')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-cheese' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Appetizer
+                </div>
+                <div onclick="window.setCategory('Breakfast')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-coffee-togo' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Breakfast
+                </div>
+                <div onclick="window.setCategory('Lunch')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-bowl-rice' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Lunch
+                </div>
+                <div onclick="window.setCategory('Dinner')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-fridge' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Dinner
+                </div>
+                <div onclick="window.setCategory('Dessert')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-cake' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Dessert
+                </div>
+                <div onclick="window.setCategory('General')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-restaurant' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>General
+                </div>
+            </div>
+
+            <h2 style="margin-bottom: 12px; font-size: 1.2rem; border-top: 1px solid var(--border-color); padding-top: 15px;">Browse by Diet</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">
+                <div onclick="window.setDietaryFilter('Keto')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-shield' style='font-size: 1.5rem; color: #ff642e; display: block; margin-bottom: 3px;'></i>Keto
+                </div>
+                <div onclick="window.setDietaryFilter('Vegan')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-leaf' style='font-size: 1.5rem; color: #4caf50; display: block; margin-bottom: 3px;'></i>Vegan
+                </div>
+                <div onclick="window.setDietaryFilter('Vegetarian')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-circle-quarter' style='font-size: 1.5rem; color: #009688; display: block; margin-bottom: 3px;'></i>Vegetarian
+                </div>
+                <div onclick="window.setDietaryFilter('Gluten-Free')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-cookie' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Gluten-Free
+                </div>
+                <div onclick="window.setDietaryFilter('Low-Sodium')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-water' style='font-size: 1.5rem; color: #2196f3; display: block; margin-bottom: 3px;'></i>Low-Sodium
+                </div>
+            </div>
+        </div>
+        
+        <div id="search-results-header" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 id="results-title" style="font-size: 1.3rem;">Recipes</h2>
+            <button onclick="window.resetSearch()" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">Back</button>
+        </div>
+
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+            <input type="text" id="search-input" placeholder="🔍 Search within results..." oninput="window.performSearch()" class="create-input" style="margin: 0; padding: 8px 14px; border-radius: 20px; font-size: 0.9rem;">
+        </div>
+
         <div id="posts-feed"></div>
     </div>
 `;

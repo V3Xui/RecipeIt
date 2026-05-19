@@ -802,6 +802,31 @@ li {
     border: 1px solid var(--border-color);
 }
 
+/* ==========================================================================
+   MODULE 3 TIMELINE DIET CHIP FILTER COMPONENT
+   ========================================================================== */
+.diet-chip-btn {
+    background: var(--card-bg);
+    color: var(--text-sec);
+    border: 1px solid var(--border-color);
+    padding: 4px 12px !important;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 15px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.diet-chip-btn.active-chip {
+    background: var(--accent-color) !important;
+    color: white !important;
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 2px 6px var(--shadow);
+}
+
+
+
 /* --- ANIMATIONS & MEDIA QUERIES --- */
 @keyframes slideUp {
     from {
