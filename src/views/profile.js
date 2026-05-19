@@ -1,5 +1,6 @@
 import { auth, db } from '../config.js';
 import { createPostCard } from '../components/postCard.js';
+import { fetchUserMealPlan } from '../services/plannerService.js';
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
@@ -79,7 +80,6 @@ export const loadPublicProfile = (targetUserId) => {
             
             if (currentUser && currentUser.uid !== targetUserId) {
                 db.collection("users").doc(currentUser.uid).onSnapshot((myDoc) => {
-                    // FIX: Provide a fallback layout if the current user profile data is uninitialized
                     const myData = myDoc.data() || { following: [] };
                     const amFollowing = myData.following && myData.following.includes(targetUserId);
                     const safeName = (data.displayName || 'Chef').replace(/'/g, "\\'");
@@ -104,7 +104,8 @@ export const loadPublicProfile = (targetUserId) => {
         if(postCountEl) postCountEl.innerText = snap.size; 
         if (snap.empty) { feed.innerHTML = "<p>No recipes posted yet.</p>"; return; }
         snap.forEach((doc) => {
-            feed.innerHTML += createPostCard(doc.data(), doc.id, currentUser);
+            const globalState = { myBookmarks: window.myBookmarks, currentUserData: window.currentUserData };
+            feed.innerHTML += createPostCard(doc.data(), doc.id, currentUser, globalState);
         });
     });
 
@@ -122,7 +123,10 @@ export const loadSavedPosts = () => {
   db.collection("posts").orderBy("createdAt", "desc").get().then((snap) => {
       feed.innerHTML = "";
       snap.forEach((doc) => {
-          if (window.myBookmarks.includes(doc.id)) feed.innerHTML += createPostCard(doc.data(), doc.id, user);
+          if (window.myBookmarks.includes(doc.id)) {
+              const globalState = { myBookmarks: window.myBookmarks, currentUserData: window.currentUserData };
+              feed.innerHTML += createPostCard(doc.data(), doc.id, user, globalState);
+          }
       });
   });
 };
@@ -222,12 +226,10 @@ window.toggleFollow = async (targetUserId, targetUserName) => {
 
     try {
         const myDoc = await myDocRef.get();
-        // Fallback array handling if document is uninitialized
         const myData = myDoc.data() || { following: [] };
         const isFollowing = myData.following && myData.following.includes(targetUserId);
 
         if (isFollowing) {
-            // Unfollow logic: Switch .update() to .set(..., { merge: true })
             await myDocRef.set({
                 following: firebase.firestore.FieldValue.arrayRemove(targetUserId)
             }, { merge: true });
@@ -238,7 +240,6 @@ window.toggleFollow = async (targetUserId, targetUserName) => {
 
             window.showToast(`Unfollowed ${targetUserName}`);
         } else {
-            // Follow logic: Switch .update() to .set(..., { merge: true })
             await myDocRef.set({
                 following: firebase.firestore.FieldValue.arrayUnion(targetUserId)
             }, { merge: true });
@@ -263,12 +264,11 @@ export const loadMenu = () => {
         const img = document.getElementById("menu-avatar");
         const name = document.getElementById("menu-name");
         const themeIcon = document.getElementById("menu-theme-icon");
-        const optionsList = document.getElementById("menu-options-list"); // Defined correctly here!
+        const optionsList = document.getElementById("menu-options-list");
         
         if (img) img.src = user.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
         if (name) name.innerText = user.displayName || user.email;
         
-        // 🛡️ FIX 1: Safe Meal Planner Option Injection Block
         if (optionsList && !document.getElementById("planner-menu-item")) {
             const plannerItem = document.createElement("div");
             plannerItem.id = "planner-menu-item";
@@ -276,12 +276,9 @@ export const loadMenu = () => {
             plannerItem.style.borderBottom = "1px solid var(--border-color)";
             plannerItem.onclick = () => window.router('/planner');
             plannerItem.innerHTML = `<i class='bx bx-calendar-heart' style='font-size:1.2rem; color:var(--accent-color);'></i> Daily Meal Planner`;
-            
-            // Inserts it cleanly right at the top of the option drawer list
             optionsList.insertBefore(plannerItem, optionsList.firstChild);
         }
-        
-        // 🛡️ FIX 2: Real-time authorization check injection block for Admins
+
         if (optionsList && window.currentUserData && window.currentUserData.role === 'admin') {
             if (!document.getElementById("admin-menu-item")) {
                 const adminItem = document.createElement("div");
@@ -292,7 +289,6 @@ export const loadMenu = () => {
                 adminItem.style.fontWeight = "bold";
                 adminItem.onclick = () => window.router('/admin');
                 adminItem.innerHTML = `<i class='bx bx-shield-quarter' style='font-size:1.2rem; color:var(--accent-color);'></i> Moderation Control`;
-                
                 optionsList.prepend(adminItem);
             }
         }
@@ -302,7 +298,87 @@ export const loadMenu = () => {
     }, 50);
 };
 
+// --- GLOBAL ATTACHMENT FOR ROUTER CORE WORKSPACE ---
+window.loadMealPlannerDashboard = async () => {
+    const user = auth.currentUser;
+    if (!user) return window.router("/");
+
+    const container = document.getElementById("weekly-planner-container");
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center; padding:30px;"><i class='bx bx-loader-alt bx-spin' style="font-size:1.5rem; color:var(--accent-color);"></i></div>`;
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const TARGET_CALORIES = 2000;
+
+    try {
+        const snap = await fetchUserMealPlan(user.uid);
+        container.innerHTML = "";
+        
+        const planByDay = {};
+        days.forEach(d => planByDay[d] = []);
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (planByDay[data.dayOfWeek]) planByDay[data.dayOfWeek].push({ id: doc.id, ...data });
+        });
+
+        days.forEach(day => {
+            const plannedMeals = planByDay[day];
+            let totalCal = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+            let mealsListHTML = "";
+
+            if (plannedMeals.length === 0) {
+                mealsListHTML = `<p style="font-size:0.8rem; color:var(--text-sec); font-style:italic; padding:4px 0;">No meals scheduled yet.</p>`;
+            } else {
+                mealsListHTML = plannedMeals.map(meal => {
+                    totalCal += meal.calories || 0;
+                    totalProtein += meal.protein || 0;
+                    totalCarbs += meal.carbs || 0;
+                    totalFat += meal.fat || 0;
+
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); border:1px solid var(--border-color); padding:8px 12px; border-radius:6px; margin-top:6px;">
+                            <div>
+                                <span style="font-size:0.85rem; font-weight:600; color:var(--accent-color);">${meal.recipeTitle}</span>
+                                <div style="font-size:0.7rem; color:var(--text-sec); margin-top:2px;">🔥 ${meal.calories} kcal | P: ${meal.protein}g | C: ${meal.carbs}g | F: ${meal.fat}g</div>
+                            </div>
+                            <button onclick="window.removeFromMealPlan('${meal.id}')" style="background:transparent; color:#ff4500; padding:4px; border:none; cursor:pointer;"><i class='bx bx-x-circle' style="font-size:1.15rem;"></i></button>
+                        </div>
+                    `;
+                }).join("");
+            }
+
+            const progressPercent = Math.min((totalCal / TARGET_CALORIES) * 100, 100);
+            const barColor = totalCal > TARGET_CALORIES ? "#ff4500" : "var(--accent-color)";
+
+            const dayCardHTML = `
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; box-shadow: 0 1px 3px var(--shadow);">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; border-bottom:1px solid var(--border-color); padding-bottom:4px;">
+                        <h3 style="font-size:1rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-main);">${day}</h3>
+                        <span style="font-size:0.75rem; font-weight:bold; color:${totalCal > TARGET_CALORIES ? '#ff4500' : 'var(--text-sec)'}">
+                            ${totalCal} / ${TARGET_CALORIES} <small>kcal</small>
+                        </span>
+                    </div>
+                    <div style="width:100%; height:6px; background:var(--bg-color); border-radius:3px; overflow:hidden; margin-bottom:10px;">
+                        <div style="width:${progressPercent}%; height:100%; background:${barColor}; transition:width 0.3s ease;"></div>
+                    </div>
+                    <div style="display:flex; gap:12px; font-size:0.7rem; color:var(--text-sec); font-weight:600; padding:2px 2px; margin-bottom:5px;">
+                        <span>💪 P: <b style="color:var(--text-main);">${totalProtein}g</b></span>
+                        <span>🍞 C: <b style="color:var(--text-main);">${totalCarbs}g</b></span>
+                        <span>🥑 F: <b style="color:var(--text-main);">${totalFat}g</b></span>
+                    </div>
+                    <div style="margin-top:5px;">${mealsListHTML}</div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', dayCardHTML);
+        });
+    } catch (err) {
+        console.error("Dashboard error:", err);
+    }
+};
+
 window.loadSavedPosts = loadSavedPosts;
-window.loadShoppingList = loadShoppingList;
 window.loadPublicProfile = loadPublicProfile;
+window.loadAccountSettings = loadAccountSettings;
 window.loadMenu = loadMenu;
+window.loadShoppingList = loadShoppingList;

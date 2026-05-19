@@ -248,3 +248,121 @@ window.addEventListener('click', (e) => {
         document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
     }
 });
+
+/**
+ * Queries a chronological block of recipes using an array-contains look-up rule for lifestyle tags.
+ */
+window.setDietaryFilter = (diet) => {
+    const catSection = document.getElementById("category-section");
+    const resultHeader = document.getElementById("search-results-header");
+    const resultTitle = document.getElementById("results-title");
+    
+    if (catSection) catSection.style.display = "none";
+    if (resultHeader) resultHeader.style.display = "flex";
+    if (resultTitle) resultTitle.innerText = `${diet} Menu`;
+
+    const feedContainer = document.getElementById("posts-feed");
+    if (!feedContainer) return;
+    feedContainer.innerHTML = `<div style="text-align:center; padding:40px;"><i class='bx bx-loader-alt bx-spin' style="font-size:2rem; color:var(--accent-color);"></i></div>`;
+    
+    db.collection("posts")
+        .where("dietaryTags", "array-contains", diet)
+        .orderBy("createdAt", "desc")
+        .limit(20)
+        .get()
+        .then((snap) => {
+            feedContainer.innerHTML = "";
+            if (snap.empty) {
+                feedContainer.innerHTML = `<div style='text-align:center; padding:20px; color:var(--text-sec);'>No verified ${diet} recipes found.</div>`;
+                return;
+            }
+            snap.forEach(doc => {
+                const globalState = { myBookmarks: window.myBookmarks, currentUserData: window.currentUserData };
+                feedContainer.insertAdjacentHTML('beforeend', createPostCard(doc.data(), doc.id, auth.currentUser, globalState));
+            });
+        })
+        .catch(err => {
+            console.error("Dietary lookup crash:", err);
+            window.showToast("Error filtering diet structure", "error");
+        });
+};
+
+/**
+ * Initializes and populates the reported content stream for administrators.
+ */
+window.loadAdminDashboard = () => {
+    const isAdmin = window.currentUserData && window.currentUserData.role === 'admin';
+    if (!isAdmin) {
+        window.showToast("Unauthorized entry blocked.", "error");
+        window.router("/dashboard");
+        return;
+    }
+
+    const panelFeed = document.getElementById("admin-reports-feed");
+    if (!panelFeed) return;
+
+    panelFeed.innerHTML = `<div style="text-align:center; padding:20px;"><i class='bx bx-loader-alt bx-spin' style="font-size:1.5rem; color:var(--accent-color);"></i></div>`;
+
+    db.collection("posts")
+        .where("reportCount", ">=", 1)
+        .orderBy("reportCount", "desc")
+        .get()
+        .then((snap) => {
+            panelFeed.innerHTML = "";
+            if (snap.empty) {
+                panelFeed.innerHTML = "<p style='text-align:center; color:var(--text-sec); padding:30px;'>No pending reports! The queue is clean. ✨</p>";
+                return;
+            }
+
+            snap.forEach((doc) => {
+                const data = doc.data();
+                const reportHeader = `
+                    <div style="background:#ff450015; border-left:4px solid #ff4500; padding:10px; margin-bottom:20px; border-radius:0 8px 8px 0; font-size:0.85rem; font-weight:bold; color:#ff4500; display:flex; justify-content:space-between; align-items:center;">
+                        <span>⚠️ FLAG NOTIFICATION: Reported ${data.reportCount} times</span>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="window.adminMarkSafe('${doc.id}')" style="background:#4caf50; color:white; border:none; padding:5px 12px; font-size:0.75rem; border-radius:20px; cursor:pointer; font-weight:600;">Mark Safe</button>
+                            <button onclick="window.adminDeletePost('${doc.id}')" style="background:#ff4500; color:white; border:none; padding:5px 12px; font-size:0.75rem; border-radius:20px; cursor:pointer; font-weight:600;">Quick Purge</button>
+                        </div>
+                    </div>
+                `;
+                panelFeed.insertAdjacentHTML('beforeend', reportHeader);
+                const globalState = { myBookmarks: window.myBookmarks, currentUserData: window.currentUserData };
+                panelFeed.insertAdjacentHTML('beforeend', createPostCard(data, doc.id, auth.currentUser, globalState));
+            });
+        })
+        .catch((err) => {
+            console.error("Panel fetch error:", err);
+            window.showToast("Failed to load administration pipeline", "error");
+        });
+};
+
+window.resetSearch = () => {
+    const catSection = document.getElementById("category-section");
+    const resultHeader = document.getElementById("search-results-header");
+    const feedContainer = document.getElementById("posts-feed");
+    const innerSearchInput = document.getElementById("search-input");
+
+    if (catSection) catSection.style.display = "block";
+    if (resultHeader) resultHeader.style.display = "none";
+    if (innerSearchInput) innerSearchInput.value = "";
+    if (feedContainer) feedContainer.innerHTML = "";
+};
+
+/**
+ * Searches and filters through the titles of actively rendered dietary query list post cards on the client side.
+ */
+window.performSearch = () => {
+    const term = (document.getElementById("search-input")?.value || "").toLowerCase();
+    const cards = document.querySelectorAll(".post-card");
+    
+    cards.forEach(card => {
+        const titleText = card.querySelector(".post-title")?.innerText.toLowerCase() || "";
+        const descText = card.querySelector(".post-content")?.innerText.toLowerCase() || "";
+        
+        if (titleText.includes(term) || descText.includes(term)) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+};

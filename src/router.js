@@ -1,7 +1,6 @@
 import { auth, db } from './config.js';
 import { loadPosts, loadEditForm } from './views/feed.js';
 import { loadAccountSettings, loadSavedPosts, loadShoppingList, loadPublicProfile, loadMenu } from './views/profile.js';
-import { createPostCard } from './components/postCard.js';
 
 // --- HTML VIEW STRING DEFINITIONS ---
 export const LoginView = `
@@ -409,7 +408,6 @@ export const PlannerView = `
     <div class="dashboard-page" style="padding:15px;">
         <h2 style="margin-bottom:2px;"><i class='bx bx-calendar-heart' style="color:var(--accent-color);"></i> Daily Meal Planner</h2>
         <p style="color:var(--text-sec); font-size:0.85rem; margin-bottom:15px;">Track scheduled meals and aggregated metrics against daily baselines.</p>
-        
         <div id="weekly-planner-container" style="display:flex; flex-direction:column; gap:15px;"></div>
     </div>
 `;

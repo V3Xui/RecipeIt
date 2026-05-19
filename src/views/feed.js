@@ -116,5 +116,39 @@ window.toggleComments = (id) => {
     }
 };
 
+export const loadEditForm = () => {
+    if (!window.editingPostId) return window.router("/dashboard");
+    
+    db.collection("posts").doc(window.editingPostId).get().then((doc) => {
+        if (doc.exists) {
+            const d = doc.data();
+            
+            // 1. Populate Standard Culinary Fields
+            document.getElementById("edit-title").value = d.title || "";
+            document.getElementById("post-category").value = d.category || "General"; 
+            document.getElementById("edit-desc").value = d.description || "";
+            document.getElementById("edit-ingredients").value = (d.ingredients || []).join("\n");
+            document.getElementById("edit-instructions").value = (d.instructions || []).join("\n");
+            document.getElementById("edit-tips").value = (d.tips || []).join("\n");
+
+            // 2. Populate Nutritional Form Inputs
+            const nut = d.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+            document.getElementById("edit-calories").value = nut.calories || 0;
+            document.getElementById("edit-protein").value = nut.protein || 0;
+            document.getElementById("edit-carbs").value = nut.carbs || 0;
+            document.getElementById("edit-fats").value = nut.fat || 0;
+
+            // 3. Pre-check Active Dietary Classification Toggles
+            const activeTags = d.dietaryTags || [];
+            document.querySelectorAll('input[name="edit-diet-tags"]').forEach(cb => {
+                cb.checked = activeTags.includes(cb.value);
+            });
+        }
+    }).catch(err => {
+        console.error("Failed to load edit details:", err);
+        window.showToast("Could not load recipe data.", "error");
+    });
+};
+
 window.openEditPage = (id) => { window.editingPostId = id; window.router("/edit"); };
 window.loadPosts = loadPosts;
