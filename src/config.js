@@ -14,5 +14,6 @@ if (!window.firebase.apps.length) {
 
 export const auth = window.firebase.auth();
 export const db = window.firebase.firestore();
+export const firebase = window.firebase;
 
 window.firebase = firebase;

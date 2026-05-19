@@ -1,7 +1,8 @@
 import { auth, db } from './config.js';
-// FIX: Corrected folder path mappings
 import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './components/navBar.js';
 import './services/auth.js';
+import './controllers/feedController.js';
+import './controllers/plannerController.js';
 import './views/feed.js';
 import './views/profile.js';
 import './router.js';

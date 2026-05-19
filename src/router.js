@@ -568,18 +568,6 @@ window.loadAdminDashboard = () => {
         return;
     }
 
-    if (optionsList && !document.getElementById("planner-menu-item")) {
-            const plannerItem = document.createElement("div");
-            plannerItem.id = "planner-menu-item";
-            plannerItem.className = "menu-item-styled";
-            plannerItem.style.borderBottom = "1px solid var(--border-color)";
-            plannerItem.onclick = () => window.router('/planner');
-            plannerItem.innerHTML = `<i class='bx bx-calendar-heart' style='font-size:1.2rem; color:var(--accent-color);'></i> Daily Meal Planner`;
-            
-            // Insert it elegantly right at the top options slot area
-            optionsList.insertBefore(plannerItem, optionsList.firstChild);
-        }
-
     const panelFeed = document.getElementById("admin-reports-feed");
     if (!panelFeed) return;
 
