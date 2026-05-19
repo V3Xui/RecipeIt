@@ -18,6 +18,7 @@ export const createPostCard = (post, postId, currentUser) => {
     const date = post.createdAt ? post.createdAt.toDate().toDateString() : "Just now";
     const category = post.category || "General";
 
+    // 1. Voting State
     const upvotes = post.upvotedBy || [];
     const downvotes = post.downvotedBy || [];
     const score = upvotes.length - downvotes.length;
@@ -27,19 +28,21 @@ export const createPostCard = (post, postId, currentUser) => {
     const downColor = isDownvoted ? "#7193ff" : "var(--text-sec)";
     const scoreColor = isUpvoted ? "var(--accent-color)" : isDownvoted ? "#7193ff" : "var(--text-main)";
 
+    // 2. Saved State
     const isSaved = window.myBookmarks && window.myBookmarks.includes(postId);
     const saveIcon = isSaved ? "bxs-bookmark" : "bx-bookmark";
     const saveColor = isSaved ? "var(--accent-color)" : "var(--text-main)";
 
+    // 3. Image Logic
     const imageHTML = post.imageUrl 
         ? `<div class="post-img-container"><img src="${post.imageUrl}" class="post-img"></div>`
         : `<div class="post-img-container"><i class='bx bx-dish post-placeholder-icon'></i></div>`;
 
-    // SYSTEM ACCESS RIGHTS
+    // SYSTEM ACCESS RIGHTS (Admin Panel Pipeline integration)
     const isAuthor = currentUser && currentUser.uid === post.authorId;
     const isAdmin = window.currentUserData && window.currentUserData.role === 'admin';
 
-    // DYNAMIC DRIVER INTERFACE
+    // DYNAMIC DROPDOWN DRIVER INTERFACE
     let menuOptions = `
         <div onclick="window.toggleBookmark('${postId}')" class="menu-item-styled">
             <i id="save-icon-${postId}" class='bx ${saveIcon}' style="font-size: 1.1rem; color: ${saveColor};"></i> 
@@ -53,22 +56,48 @@ export const createPostCard = (post, postId, currentUser) => {
             <div onclick="window.deletePost('${postId}')" class="menu-item-styled" style="color: #ff4500;"><i class='bx bx-trash'></i> Delete Post</div>
         `;
     } else {
-        // Regular users can report posts
         menuOptions += `
             <div onclick="window.reportPost('${postId}')" class="menu-item-styled" style="color: #ffc107;"><i class='bx bx-flag'></i> Report Content</div>
         `;
     }
 
-    // Admins get moderation options
     if (isAdmin) {
         menuOptions += `
-            <div onclick="window.adminDeletePost('${postId}')" class="menu-item-styled" style="color: #ff4500; font-weight: bold; border-top: 1px solid var(--var-border-color, var(--border-color));"><i class='bx bx-shield-x'></i> Moderate Delete</div>
+            <div onclick="window.adminDeletePost('${postId}')" class="menu-item-styled" style="color: #ff4500; font-weight: bold; border-top: 1px solid var(--border-color);"><i class='bx bx-shield-x'></i> Moderate Delete</div>
         `;
         if (!isAuthor) {
             menuOptions += `
                 <div onclick="window.adminBanUser('${post.authorId}', '${(post.authorName || 'User').replace(/'/g, "\\'")}')" class="menu-item-styled" style="color: #ff0000; font-weight: bold;"><i class='bx bx-user-x'></i> Suspend Creator</div>
             `;
         }
+    }
+
+    // MODULE 2 FEATURE: EXTRACT AND MAP NUTRITIONAL PROPERTIES SAFELY
+    const nut = post.nutrition || null;
+    let nutritionBarHTML = "";
+    if (nut && (nut.calories || nut.protein || nut.carbs || nut.fat)) {
+        nutritionBarHTML = `
+            <div class="post-macro-bar">
+                <div class="macro-stat"> <span>${nut.calories || 0}</span> <small>kcal</small></div>
+                <div class="macro-stat"> <span>${nut.protein || 0}</span><small>g Protein</small></div>
+                <div class="macro-stat"> <span>${nut.carbs || 0}</span><small>g Carbs</small></div>
+                <div class="macro-stat"> <span>${nut.fat || 0}</span><small>g Fats</small></div>
+            </div>
+        `;
+    }
+
+    // MODULE 2 FEATURE: GENERATE DIETARY PILL BADGES
+    const tags = post.dietaryTags || [];
+    let dietaryBadgesHTML = "";
+    if (tags.length > 0) {
+        dietaryBadgesHTML = tags.map(tag => {
+            // Give specific dietary choices unique colors to stand out
+            let bgClass = "tag-default";
+            if (tag === "Keto") bgClass = "tag-keto";
+            if (tag === "Vegan") bgClass = "tag-vegan";
+            if (tag === "Vegetarian") bgClass = "tag-vegetarian";
+            return `<span class="post-diet-badge ${bgClass}">${tag}</span>`;
+        }).join("");
     }
 
     return `
@@ -90,6 +119,7 @@ export const createPostCard = (post, postId, currentUser) => {
                     <div class="post-meta-info">
                         <span class="post-date">${date}</span>
                         <span class="post-category-tag">${category}</span>
+                        ${dietaryBadgesHTML}
                     </div>
                 </div>
                 <div style="position: relative;">
@@ -101,6 +131,9 @@ export const createPostCard = (post, postId, currentUser) => {
             </div>
 
             <div id="title-${postId}" class="post-title" style="margin-top: 10px; font-weight:bold; font-size:1.1rem;">${post.title}</div>
+            
+            ${nutritionBarHTML}
+            
             ${imageHTML}
             <div class="post-content" style="margin-top:10px; color: var(--text-main);">${post.description || ""}</div>
 
