@@ -75,6 +75,50 @@ export const CreateView = `
             <option value="Dessert">Dessert</option>
         </select>
 
+        <span class="form-label">Nutritional Summary</span>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Calories (kcal)</span>
+                <input type="number" id="post-calories" placeholder="0" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Protein (g)</span>
+                <input type="number" id="post-protein" placeholder="0" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Carbs (g)</span>
+                <input type="number" id="post-carbs" placeholder="0" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Fats (g)</span>
+                <input type="number" id="post-fats" placeholder="0" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+        </div>
+
+        <span class="form-label">Dietary Classification (Select all that apply)</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 25px;">
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="post-diet-tags" value="Keto" style="display:none;">
+                <span class="diet-toggle-btn">Keto</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="post-diet-tags" value="Vegan" style="display:none;">
+                <span class="diet-toggle-btn">Vegan</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="post-diet-tags" value="Vegetarian" style="display:none;">
+                <span class="diet-toggle-btn">Vegetarian</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="post-diet-tags" value="Gluten-Free" style="display:none;">
+                <span class="diet-toggle-btn">Gluten-Free</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="post-diet-tags" value="Low-Sodium" style="display:none;">
+                <span class="diet-toggle-btn">Low-Sodium</span>
+            </label>
+        </div>
+
         <span class="form-label">Description</span>
         <textarea id="post-desc" class="create-input" placeholder="Tell us about your dish..." rows="3"></textarea>
 
@@ -103,10 +147,56 @@ export const EditView = `
         <span class="form-label">Category</span>
         <select id="post-category" class="create-input" style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background:var(--input-bg); color:var(--text-main); margin-bottom:20px;">
             <option value="General">General</option>
+            <option value="Appetizer">Appetizer</option>
             <option value="Breakfast">Breakfast</option>
             <option value="Lunch">Lunch</option>
             <option value="Dinner">Dinner</option>
+            <option value="Dessert">Dessert</option>
         </select>
+
+        <span class="form-label">Nutritional Summary</span>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Calories (kcal)</span>
+                <input type="number" id="edit-calories" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Protein (g)</span>
+                <input type="number" id="edit-protein" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Carbs (g)</span>
+                <input type="number" id="edit-carbs" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+            <div>
+                <span style="font-size: 0.7rem; color: var(--text-sec); display: block; margin-bottom: 4px; font-weight: bold;">Fats (g)</span>
+                <input type="number" id="edit-fats" min="0" class="create-input" style="margin:0; padding:10px;">
+            </div>
+        </div>
+
+        <span class="form-label">Dietary Classification (Select all that apply)</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 25px;">
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="edit-diet-tags" value="Keto" style="display:none;">
+                <span class="diet-toggle-btn">Keto</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="edit-diet-tags" value="Vegan" style="display:none;">
+                <span class="diet-toggle-btn">Vegan</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="edit-diet-tags" value="Vegetarian" style="display:none;">
+                <span class="diet-toggle-btn">Vegetarian</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="edit-diet-tags" value="Gluten-Free" style="display:none;">
+                <span class="diet-toggle-btn">Gluten-Free</span>
+            </label>
+            <label class="diet-toggle-label">
+                <input type="checkbox" name="edit-diet-tags" value="Low-Sodium" style="display:none;">
+                <span class="diet-toggle-btn">Low-Sodium</span>
+            </label>
+        </div>
 
         <span class="form-label">Description</span>
         <textarea id="edit-desc" class="create-input" rows="3"></textarea>

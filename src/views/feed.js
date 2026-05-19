@@ -271,13 +271,30 @@ window.submitPost = () => {
   const tips = document.getElementById("post-tips").value.split('\n').filter(l => l.trim() !== '');
   const file = document.getElementById("post-image").files[0];
 
+  // MODULE 1 IMPLEMENTATION: GRAB AND MAP MACRONUTRIENT VALUES
+  const calories = parseInt(document.getElementById("post-calories").value) || 0;
+  const protein = parseInt(document.getElementById("post-protein").value) || 0;
+  const carbs = parseInt(document.getElementById("post-carbs").value) || 0;
+  const fats = parseInt(document.getElementById("post-fats").value) || 0;
+
+  // MODULE 1 IMPLEMENTATION: COLLECT CHECKED DIETARY LIFESTYLE TOKENS
+  const dietaryTags = [];
+  document.querySelectorAll('input[name="post-diet-tags"]:checked').forEach(cb => {
+      dietaryTags.push(cb.value);
+  });
+
   if (!user || !title) return window.showToast("Dish Name required!", "error");
 
   const save = (url) => {
     db.collection("posts").add({
         title, category, description: desc, ingredients, instructions, tips, imageUrl: url,
         authorName: user.displayName || user.email, authorEmail: user.email, authorId: user.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), upvotedBy: [], downvotedBy: []
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), upvotedBy: [], downvotedBy: [],
+        reportCount: 0, // Admin tracking integration initialization
+        
+        // SAVE NUTRITION PACKAGE
+        nutrition: { calories, protein, carbs, fat: fats },
+        dietaryTags: dietaryTags
     }).then(() => {
         window.showToast("Recipe shared!", "success");
         window.router("/dashboard");
@@ -301,8 +318,24 @@ window.submitUpdate = () => {
   const tips = document.getElementById("edit-tips").value.split("\n").filter(l => l.trim() !== "");
   const file = document.getElementById("edit-image").files[0];
 
+  // MODULE 1 IMPLEMENTATION: EXTRACT CURRENT MACRO FORM PROGRESSION
+  const calories = parseInt(document.getElementById("edit-calories").value) || 0;
+  const protein = parseInt(document.getElementById("edit-protein").value) || 0;
+  const carbs = parseInt(document.getElementById("edit-carbs").value) || 0;
+  const fats = parseInt(document.getElementById("edit-fats").value) || 0;
+
+  // MODULE 1 IMPLEMENTATION: EXTRACT TICKED LIFECYCLE ARRAY
+  const dietaryTags = [];
+  document.querySelectorAll('input[name="edit-diet-tags"]:checked').forEach(cb => {
+      dietaryTags.push(cb.value);
+  });
+
   const updateFirestore = (newUrl) => {
-    const updateData = { title, category, description: desc, ingredients, instructions, tips };
+    const updateData = { 
+        title, category, description: desc, ingredients, instructions, tips,
+        nutrition: { calories, protein, carbs, fat: fats },
+        dietaryTags: dietaryTags
+    };
     if (newUrl) updateData.imageUrl = newUrl;
     db.collection("posts").doc(id).update(updateData).then(() => {
         window.showToast("Recipe updated!", "success");
@@ -330,6 +363,19 @@ export const loadEditForm = () => {
         document.getElementById("edit-ingredients").value = (d.ingredients || []).join("\n");
         document.getElementById("edit-instructions").value = (d.instructions || []).join("\n");
         document.getElementById("edit-tips").value = (d.tips || []).join("\n");
+
+        // MODULE 1 EXTENSION: POPULATE NUTRITION MAP INTO FORMS
+        const nut = d.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+        document.getElementById("edit-calories").value = nut.calories || 0;
+        document.getElementById("edit-protein").value = nut.protein || 0;
+        document.getElementById("edit-carbs").value = nut.carbs || 0;
+        document.getElementById("edit-fats").value = nut.fat || 0;
+
+        // MODULE 1 EXTENSION: PRE-CHECK ACTIVE DIETARY LABELS
+        const activeTags = d.dietaryTags || [];
+        document.querySelectorAll('input[name="edit-diet-tags"]').forEach(cb => {
+            cb.checked = activeTags.includes(cb.value);
+        });
       }
     });
 };

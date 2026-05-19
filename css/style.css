@@ -47,7 +47,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 80px;
+    padding-top: 20px;
     /* FIX: Reduced desktop side padding from 20px to 12px */
     padding-left: 12px;
     padding-right: 12px;
@@ -712,6 +712,33 @@ li {
     color: white !important;
     padding: 8px 18px !important;
     border-radius: 20px;
+}
+
+/* ==========================================================================
+   MODULE 1 DIETARY SELECTION PIPELINE UI
+   ========================================================================== */
+.diet-toggle-label {
+    cursor: pointer;
+}
+
+.diet-toggle-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    background: var(--bg-color);
+    color: var(--text-sec);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+/* When the hidden checkbox is ticked, change button colors dynamically */
+.diet-toggle-label input:checked + .diet-toggle-btn {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
 }
 
 /* --- ANIMATIONS & MEDIA QUERIES --- */
