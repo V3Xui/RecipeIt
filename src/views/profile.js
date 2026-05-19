@@ -291,6 +291,183 @@ export const loadMenu = () => {
     }, 50);
 };
 
+// ==========================================================================
+// MODULE 4 MASTER FEATURE: CALENDAR SCHEDULER & HEALTH AGGREGATOR ENGINE
+// ==========================================================================
+
+window.openMealPlannerModal = (event, postId, recipeTitle) => {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    
+    const user = auth.currentUser;
+    if (!user) return window.showToast("Please log in to plan meals!", "error");
+
+    let modal = document.getElementById('meal-planner-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'meal-planner-modal';
+        modal.className = 'modal-overlay';
+        document.body.appendChild(modal);
+    }
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const dayButtonsHTML = days.map(day => `
+        <button onclick="window.saveToMealPlan('${postId}', '${recipeTitle.replace(/'/g, "\\'")}', '${day}')" 
+                style="width:100%; background:var(--bg-color); color:var(--text-main); border:1px solid var(--border-color); text-align:left; padding:12px 15px; border-radius:8px; margin-bottom:6px; font-size:0.9rem; display:flex; justify-content:space-between; align-items:center;">
+            <span>${day}</span> <i class='bx bx-chevron-right' style="color:var(--accent-color);"></i>
+        </button>
+    `).join("");
+
+    modal.innerHTML = `
+        <div class="modal-card" style="max-width:340px;">
+            <h3 style="margin-bottom:4px;"><i class='bx bx-calendar-plus' style='color:var(--accent-color);'></i> Schedule Meal</h3>
+            <p style="margin-bottom:15px; font-size:0.8rem; color:var(--text-sec);">Add "${recipeTitle}" to your daily health pipeline routines.</p>
+            <div style="max-height:280px; overflow-y:auto; padding-right:2px;">
+                ${dayButtonsHTML}
+            </div>
+            <button onclick="document.getElementById('meal-planner-modal').style.display='none'" 
+                    style="width:100%; background:transparent; color:var(--text-sec); border:1px solid var(--border-color); margin-top:10px; font-size:0.85rem; padding:8px;">Cancel</button>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+};
+
+window.saveToMealPlan = (postId, recipeTitle, day) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    document.getElementById('meal-planner-modal').style.display = 'none';
+
+    // Fetch the target post document first to ensure we lock in precise snapshot macros
+    db.collection("posts").doc(postId).get().then((doc) => {
+        if (!doc.exists) return window.showToast("Recipe entry no longer exists.", "error");
+
+        const data = doc.data();
+        const nut = data.nutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+        // WRITE MAP TO USER STATE ACCORDING TO ACCESSED PATHWAYS
+        db.collection("users").doc(user.uid).collection("mealPlan").add({
+            postId,
+            recipeTitle,
+            dayOfWeek: day,
+            calories: parseInt(nut.calories) || 0,
+            protein: parseInt(nut.protein) || 0,
+            carbs: parseInt(nut.carbs) || 0,
+            fat: parseInt(nut.fat) || 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            window.showToast(`Added to ${day}'s Meal Plan!`, "success");
+        })
+        .catch(err => window.showToast("Planner save error: " + err.message, "error"));
+    });
+};
+
+window.removeFromMealPlan = (planId) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    db.collection("users").doc(user.uid).collection("mealPlan").doc(planId).delete()
+    .then(() => {
+        window.showToast("Meal removed from schedule.", "normal");
+        window.loadMealPlannerDashboard(); // Live canvas update refresh
+    })
+    .catch(err => window.showToast("Removal failed: " + err.message, "error"));
+};
+
+window.loadMealPlannerDashboard = () => {
+    const user = auth.currentUser;
+    if (!user) return window.router("/");
+
+    const container = document.getElementById("weekly-planner-container");
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center; padding:30px;"><i class='bx bx-loader-alt bx-spin' style="font-size:1.5rem; color:var(--accent-color);"></i></div>`;
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    
+    // Academic Defense Target Baseline Benchmarks
+    const TARGET_CALORIES = 2000;
+
+    // Fetch user scheduling sub-collections array maps in real-time
+    db.collection("users").doc(user.uid).collection("mealPlan").get().then((snap) => {
+        container.innerHTML = "";
+        
+        // Group list items by week days mapping structures
+        const planByDay = {};
+        days.forEach(d => planByDay[d] = []);
+        
+        snap.forEach(doc => {
+            const data = doc.data();
+            if (planByDay[data.dayOfWeek]) {
+                planByDay[data.dayOfWeek].push({ id: doc.id, ...data });
+            }
+        });
+
+        // Loop through all 7 days to compile mathematical aggregations
+        days.forEach(day => {
+            const plannedMeals = planByDay[day];
+            
+            let totalCal = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
+            let mealsListHTML = "";
+
+            if (plannedMeals.length === 0) {
+                mealsListHTML = `<p style="font-size:0.8rem; color:var(--text-sec); font-style:italic; padding:4px 0;">No meals scheduled yet.</p>`;
+            } else {
+                mealsListHTML = plannedMeals.map(meal => {
+                    totalCal += meal.calories || 0;
+                    totalProtein += meal.protein || 0;
+                    totalCarbs += meal.carbs || 0;
+                    totalFat += meal.fat || 0;
+
+                    return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-color); border:1px solid var(--border-color); padding:8px 12px; border-radius:6px; margin-top:6px;">
+                            <div>
+                                <span onclick="window.router('/user/${meal.postId ? '.. /' : ''}')" style="font-size:0.85rem; font-weight:600; color:var(--accent-color); cursor:pointer;">${meal.recipeTitle}</span>
+                                <div style="font-size:0.7rem; color:var(--text-sec); margin-top:2px;">🔥 ${meal.calories} kcal | P: ${meal.protein}g | C: ${meal.carbs}g | F: ${meal.fat}g</div>
+                            </div>
+                            <button onclick="window.removeFromMealPlan('${meal.id}')" style="background:transparent; color:#ff4500; padding:4px; border:none; cursor:pointer;"><i class='bx bx-x-circle' style="font-size:1.15rem;"></i></button>
+                        </div>
+                    `;
+                }).join("");
+            }
+
+            // Calculate progress bar percentages
+            const progressPercent = Math.min((totalCal / TARGET_CALORIES) * 100, 100);
+            const barColor = totalCal > TARGET_CALORIES ? "#ff4500" : "var(--accent-color)";
+
+            const dayCardHTML = `
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; padding:12px 14px; box-shadow: 0 1px 3px var(--shadow);">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; border-bottom:1px solid var(--border-color); padding-bottom:4px;">
+                        <h3 style="font-size:1rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-main);">${day}</h3>
+                        <span style="font-size:0.75rem; font-weight:bold; color:${totalCal > TARGET_CALORIES ? '#ff4500' : 'var(--text-sec)'}">
+                            ${totalCal} / ${TARGET_CALORIES} <small>kcal</small>
+                        </span>
+                    </div>
+                    
+                    <div style="width:100%; height:6px; background:var(--bg-color); border-radius:3px; overflow:hidden; margin-bottom:10px;">
+                        <div style="width:${progressPercent}%; height:100%; background:${barColor}; transition:width 0.3s ease;"></div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; font-size:0.7rem; color:var(--text-sec); font-weight:600; padding:2px 2px; margin-bottom:5px;">
+                        <span>💪 Protein: <b style="color:var(--text-main);">${totalProtein}g</b></span>
+                        <span>🍞 Carbs: <b style="color:var(--text-main);">${totalCarbs}g</b></span>
+                        <span>🥑 Fats: <b style="color:var(--text-main);">${totalFat}g</b></span>
+                    </div>
+
+                    <div style="margin-top:5px;">
+                        ${mealsListHTML}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', dayCardHTML);
+        });
+    }).catch(err => {
+        console.error("Dashboard calculation failure:", err);
+        container.innerHTML = `<p style="color:red; text-align:center; font-size:0.8rem;">Could not load planner data mapping arrays.</p>`;
+    });
+};
+
 window.loadSavedPosts = loadSavedPosts;
 window.loadShoppingList = loadShoppingList;
 window.loadPublicProfile = loadPublicProfile;

@@ -142,6 +142,7 @@ export const createPostCard = (post, postId, currentUser) => {
                 
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
                     <button onclick="window.addToShoppingList(event, '${postId}')" class="details-btn"><i class='bx bx-plus'></i> Shopping List</button>
+                    <button onclick="window.openMealPlannerModal(event, '${postId}', '${(post.title || 'Recipe').replace(/'/g, "\\'")}')" class="details-btn"><i class='bx bx-calendar-plus'></i> Plan Meal</button>
                     <button onclick="document.getElementById('cooking-mode-${postId}').style.display='flex'" class="details-btn primary"><i class='bx bx-play-circle'></i> Start Cooking</button>
                 </div>
 
