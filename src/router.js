@@ -294,8 +294,22 @@ export const SearchView = `
 
 export const MessagesView = `
     <div class="dashboard-page" style="padding:15px;">
-        <h2 style="margin-bottom:15px;">Inbox</h2>
-        <div id="inbox-list"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="margin:0;">Inbox</h2>
+            <button onclick="window.openCreateGroupModal()" style="padding:6px 14px; font-size:0.85rem; border-radius:20px; display:flex; align-items:center; gap:5px;"><i class='bx bx-group'></i> New Group</button>
+        </div>
+
+        <div style="margin-bottom:15px;">
+            <input type="text" id="inbox-search-bar" placeholder="🔍 Search conversations..." oninput="window.handleSearchInbox()" class="create-input" style="margin:0; padding:10px 15px; border-radius:20px;">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+            <button id="msg-tab-active" onclick="window.switchInboxTab('active')" style="background:var(--accent-color); color:white; border:none; padding:5px 15px; font-size:0.8rem; border-radius:15px; cursor:pointer; font-weight:600;">Active</button>
+            <button id="msg-tab-requests" onclick="window.switchInboxTab('requests')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); padding:5px 15px; font-size:0.8rem; border-radius:15px; cursor:pointer; font-weight:600;">Requests</button>
+            <button id="msg-tab-archived" onclick="window.switchInboxTab('archived')" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); padding:5px 15px; font-size:0.8rem; border-radius:15px; cursor:pointer; font-weight:600;">Archived</button>
+        </div>
+
+        <div id="inbox-list" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 `;
 

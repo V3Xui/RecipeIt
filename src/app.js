@@ -1,8 +1,11 @@
 import { auth, db } from './config.js';
 import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './components/navBar.js';
+
 import './services/auth.js';
 import './controllers/feedController.js';
 import './controllers/plannerController.js';
+import './controllers/chatController.js';
+
 import './views/feed.js';
 import './views/profile.js';
 import './router.js';
