@@ -152,3 +152,99 @@ window.toggleTimelineDiet = (diet) => {
         card.style.display = match ? "block" : "none";
     });
 };
+
+// --- RESTORED CORE CARD INTERACTIONS ---
+
+window.votePost = (id, type) => {
+    const user = auth.currentUser;
+    if (!user) return window.showToast("Login to vote", "error");
+    const ref = db.collection("posts").doc(id);
+    const uid = user.uid;
+    
+    db.runTransaction(async (t) => {
+      const doc = await t.get(ref);
+      const d = doc.data();
+      let up = d.upvotedBy || [], down = d.downvotedBy || [];
+  
+      if (type === "up") {
+          up.includes(uid) ? (up = up.filter(i => i !== uid)) : (up.push(uid), down = down.filter(i => i !== uid));
+      } else {
+          down.includes(uid) ? (down = down.filter(i => i !== uid)) : (down.push(uid), up = up.filter(i => i !== uid));
+      }
+      t.update(ref, { upvotedBy: up, downvotedBy: down });
+      return { up, down };
+    }).then(({ up, down }) => {
+        const scoreEl = document.getElementById(`score-${id}`);
+        const btnUp = document.getElementById(`btn-up-${id}`);
+        const btnDown = document.getElementById(`btn-down-${id}`);
+        if(scoreEl) scoreEl.innerText = up.length - down.length;
+        if(btnUp) btnUp.style.color = up.includes(uid) ? "var(--accent-color)" : "var(--text-sec)";
+        if(btnDown) btnDown.style.color = down.includes(uid) ? "#7193ff" : "var(--text-sec)";
+    }).catch(console.error);
+};
+  
+window.addComment = (id) => {
+    const input = document.getElementById(`input-${id}`);
+    const text = input.value.trim();
+    const user = auth.currentUser;
+    if (user && text) {
+      db.collection("posts").doc(id).collection("comments").add({
+          text, authorName: user.displayName || user.email, authorId: user.uid, createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+      }).then(() => input.value = "");
+    }
+};
+  
+window.toggleBookmark = (postId) => {
+    const user = auth.currentUser;
+    if (!user) return window.showToast("Login to save", "error");
+    
+    if (!window.myBookmarks) window.myBookmarks = [];
+    const isSaved = window.myBookmarks.includes(postId);
+    const userRef = db.collection("users").doc(user.uid);
+  
+    const icon = document.getElementById(`save-icon-${postId}`);
+    const text = document.getElementById(`save-text-${postId}`);
+    if (isSaved) {
+        if(icon) { icon.className = "bx bx-bookmark"; icon.style.color = "var(--text-main)"; }
+        if(text) text.innerText = "Save Post";
+        window.myBookmarks = window.myBookmarks.filter(id => id !== postId);
+        window.showToast("Removed from Saved", "normal");
+        userRef.update({ savedRecipes: window.firebase.firestore.FieldValue.arrayRemove(postId) });
+    } else {
+        if(icon) { icon.className = "bx bxs-bookmark"; icon.style.color = "var(--accent-color)"; }
+        if(text) text.innerText = "Unsave Post";
+        window.myBookmarks.push(postId);
+        window.showToast("Saved!", "success");
+        userRef.set({ savedRecipes: window.firebase.firestore.FieldValue.arrayUnion(postId) }, { merge: true });
+    }
+    document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
+};
+  
+window.togglePostMenu = (postId) => {
+    const menu = document.getElementById(`menu-${postId}`);
+    if (menu) {
+        document.querySelectorAll('.post-menu-content').forEach(el => { if (el.id !== `menu-${postId}`) el.style.display = 'none'; });
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+};
+  
+window.addToShoppingList = (event, postId) => {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    const user = auth.currentUser;
+    if (!user) return window.showToast("Login needed", "error");
+    db.collection("posts").doc(postId).get().then((doc) => {
+        if (doc.exists) {
+            const ingredients = doc.data().ingredients || [];
+            if (ingredients.length === 0) return window.showToast("No ingredients found.", "error");
+            db.collection("users").doc(user.uid).update({
+                shoppingList: window.firebase.firestore.FieldValue.arrayUnion(...ingredients)
+            }).then(() => window.showToast(`Added ${ingredients.length} items!`, "success"));
+        }
+    });
+};
+
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('.post-menu-btn') && !e.target.closest('.post-menu-content')) {
+        document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
+    }
+});

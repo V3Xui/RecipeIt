@@ -98,10 +98,10 @@ export const createPostCard = (post, postId, currentUser, globalState = {}) => {
     if (nut && (nut.calories || nut.protein || nut.carbs || nut.fat)) {
         nutritionBarHTML = `
             <div class="post-macro-bar">
-                <div class="macro-stat">🔥 <span>${nut.calories || 0}</span> <small>kcal</small></div>
-                <div class="macro-stat">💪 <span>${nut.protein || 0}</span><small>g P</small></div>
-                <div class="macro-stat">🍞 <span>${nut.carbs || 0}</span><small>g C</small></div>
-                <div class="macro-stat">🥑 <span>${nut.fat || 0}</span><small>g F</small></div>
+                <div class="macro-stat"><span>${nut.calories || 0}</span> <small>kcal</small></div>
+                <div class="macro-stat"><span>${nut.protein || 0}</span><small>g Proteins</small></div>
+                <div class="macro-stat"><span>${nut.carbs || 0}</span><small>g Carbs</small></div>
+                <div class="macro-stat"><span>${nut.fat || 0}</span><small>g Fats</small></div>
             </div>
         `;
     }
