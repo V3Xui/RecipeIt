@@ -25,7 +25,6 @@ window.loginWithGoogle = () => {
         .then((result) => {
             const user = result.user;
             
-            // Check if this is a brand new user
             db.collection("users").doc(user.uid).get().then((doc) => {
                 if (!doc.exists) {
                     db.collection("users").doc(user.uid).set({
@@ -34,7 +33,9 @@ window.loginWithGoogle = () => {
                         photoURL: user.photoURL,
                         bio: "New to Recipeit!",
                         savedRecipes: [],
-                        following: []
+                        following: [],
+                        blockedUsers: [], // ➕ Ensures structural alignment
+                        blockedBy: []     // ➕ Ensures structural alignment
                     });
                 }
             });

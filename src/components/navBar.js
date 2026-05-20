@@ -83,9 +83,9 @@ export const updateNavbar = (user) => {
 };
 
 export const listenForUnreadMessages = (userId) => {
-    // 1. Chat Messages Badge
     db.collection("chats")
-      .where("unreadFor", "array-contains", userId)
+      .where("participants", "array-contains", userId)
+      .where(`unreadFor.${userId}`, "==", true)
       .onSnapshot((snap) => {
           const count = snap.size;
           const badge = document.getElementById("nav-msg-badge");
@@ -97,6 +97,8 @@ export const listenForUnreadMessages = (userId) => {
                   badge.style.display = "none";
               }
           }
+      }, (err) => {
+          console.error("Inbox badge stream failed:", err);
       });
 
     // 2. Activity Notifications Dot
@@ -107,5 +109,7 @@ export const listenForUnreadMessages = (userId) => {
           window.hasUnreadNotifications = hasUnread; 
           const dot = document.getElementById("dashboard-notif-dot");
           if (dot) dot.style.display = hasUnread ? "block" : "none";
+      }, (err) => {
+          console.error("Notification dot stream failed:", err);
       });
 };

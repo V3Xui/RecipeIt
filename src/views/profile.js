@@ -48,7 +48,7 @@ window.saveProfile = () => {
   const saveToFirestore = (photoURL) => {
       const updateData = { bio: newBio, email: user.email, displayName: newName };
       if (photoURL) updateData.photoURL = photoURL;
-      promises.push(db.collection("users").doc(user.uid).set(updateData, { merge: true }));
+      promises.push(db.collection("users").doc(user.uid).update(updateData));
       Promise.all(promises).then(() => { 
           window.showToast("Profile updated successfully!", "success"); 
           window.router("/dashboard"); 

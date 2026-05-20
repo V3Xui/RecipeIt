@@ -187,6 +187,7 @@ window.sendChatMessage = async () => {
 
 window.startChat = (targetUserId, targetName) => {
     const currentUid = auth.currentUser.uid;
+    if (currentUid === targetUserId) return window.showToast("You cannot message yourself", "error");
     
     db.collection("chats")
       .where("type", "==", "direct")
@@ -195,7 +196,7 @@ window.startChat = (targetUserId, targetName) => {
       .then(async (snap) => {
           let existingChatId = null;
           snap.forEach(doc => {
-              if (doc.data().participants.includes(targetUserId)) existingChatId = doc.id;
+              if (doc.data().participants?.includes(targetUserId)) existingChatId = doc.id;
           });
 
           if (existingChatId) {
@@ -204,14 +205,25 @@ window.startChat = (targetUserId, targetName) => {
               const docRef = await db.collection("chats").add({
                   type: "direct",
                   participants: [currentUid, targetUserId],
+                  unreadFor: {
+                      [currentUid]: false,
+                      [targetUserId]: true // Flag as unread for the receiver immediately
+                  },
                   status: { [currentUid]: "accepted", [targetUserId]: "pending" },
                   archivedBy: { [currentUid]: false, [targetUserId]: false },
-                  lastMessage: { text: "Chat request submitted", senderId: currentUid, timestamp: window.firebase.firestore.FieldValue.serverTimestamp() },
+                  lastMessage: { 
+                      text: "Chat request submitted", 
+                      senderId: currentUid, 
+                      timestamp: window.firebase.firestore.FieldValue.serverTimestamp() 
+                  },
                   createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
               });
               window.showToast("Message request sent!", "success");
               window.router(`/messages/${docRef.id}`);
           }
+      }).catch(err => {
+          console.error("Start chat failure:", err);
+          window.showToast("Could not open message channel.", "error");
       });
 };
 
