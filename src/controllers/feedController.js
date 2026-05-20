@@ -1,8 +1,8 @@
+import { sanitizeHTML, enforceRateLimit } from '../services/securityService.js';
 import { auth, db } from '../config.js';
 import { createPost } from '../services/postService.js';
 import { reportPost, purgePost, clearPostFlags, banUserAccount } from '../services/adminService.js';
 import { createPostCard } from '../components/postCard.js';
-import { sanitizeHTML, enforceRateLimit } from '../services/securityService.js';
 
 // Centralize local UI feed states
 let lastVisibleDoc = null;
