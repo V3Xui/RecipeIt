@@ -138,23 +138,60 @@ export const loadShoppingList = () => {
     const listContainer = document.getElementById("shopping-list-items");
     if (!listContainer) return;
 
+    // 🛡️ KITCHEN RESILIENCE: Attempt real-time snapshot connection
     db.collection("users").doc(user.uid).onSnapshot((doc) => {
         if (!doc.exists) return;
         const items = doc.data().shoppingList || [];
-        if (items.length === 0) { listContainer.innerHTML = "<p style='text-align:center; color: var(--text-sec); padding: 20px;'>Your list is empty.</p>"; return; }
-        listContainer.innerHTML = "";
-        items.forEach((item) => {
-            const safeItem = item.replace(/"/g, "&quot;").replace(/'/g, "\\'");
-            listContainer.innerHTML += `
-            <div style="display:flex; align-items:center; padding: 12px; border-bottom: 1px solid var(--border-color); background: var(--card-bg);">
-                <input type="checkbox" class="shopping-checkbox" value="${safeItem}" onchange="window.updateSelectedCount()" style="margin-right: 15px; width: 18px; height: 18px; display: none; cursor: pointer;">
-                <span style="font-size: 1rem; flex: 1;">${item}</span>
-                <button class="single-delete-btn" onclick="window.removeShoppingItem('${safeItem}')" style="background:transparent; color: #ff4500; padding: 5px;"><i class='bx bx-trash' style="font-size: 1.2rem;"></i></button>
-            </div>`;
-        });
-        const bulkRow = document.getElementById("bulk-action-row");
-        if(bulkRow && bulkRow.style.display !== "none") window.applySelectModeStyles(true);
+        
+        // Save to fallback cache immediately upon successful database read
+        localStorage.setItem(`recipeit_cache_shopping_${user.uid}`, JSON.stringify(items));
+        
+        renderShoppingItemsList(items, listContainer);
+    }, (error) => {
+        console.warn("Network interrupted. Switching to local kitchen cache handles...", error);
+        
+        // Fallback: Read items directly from localStorage if network drops
+        const cachedData = localStorage.getItem(`recipeit_cache_shopping_${user.uid}`);
+        const items = cachedData ? JSON.parse(cachedData) : [];
+        
+        renderShoppingItemsList(items, listContainer, true);
     });
+};
+
+/**
+ * Isolated template execution loop to render standard lists
+ */
+const renderShoppingItemsList = (items, listContainer, isOfflineFallback = false) => {
+    if (items.length === 0) {
+        listContainer.innerHTML = "<p style='text-align:center; color: var(--text-sec); padding: 20px;'>Your list is empty.</p>";
+        return;
+    }
+    
+    listContainer.innerHTML = "";
+    
+    // Add an offline banner if the app is currently reading from the local cache
+    if (isOfflineFallback) {
+        listContainer.innerHTML = `
+            <div style="background:var(--card-bg); border-left:4px solid #ff9800; padding:8px 12px; font-size:0.75rem; color:#ff9800; margin-bottom:10px; border-radius:0 6px 6px 0; font-weight:bold;">
+                ⚠️ Viewing local kitchen cache (Offline Mode)
+            </div>
+        `;
+    }
+
+    items.forEach((item) => {
+        const safeItem = item.replace(/"/g, "&quot;").replace(/'/g, "\\'");
+        listContainer.innerHTML += `
+        <div style="display:flex; align-items:center; padding: 12px; border-bottom: 1px solid var(--border-color); background: var(--card-bg);">
+            <input type="checkbox" class="shopping-checkbox" value="${safeItem}" onchange="window.updateSelectedCount()" style="margin-right: 15px; width: 18px; height: 18px; display: none; cursor: pointer;">
+            <span style="font-size: 1rem; flex: 1;">${item}</span>
+            ${!isOfflineFallback ? `
+                <button class="single-delete-btn" onclick="window.removeShoppingItem('${safeItem}')" style="background:transparent; color: #ff4500; padding: 5px;"><i class='bx bx-trash' style="font-size: 1.2rem;"></i></button>
+            ` : ''}
+        </div>`;
+    });
+    
+    const bulkRow = document.getElementById("bulk-action-row");
+    if(bulkRow && bulkRow.style.display !== "none") window.applySelectModeStyles(true);
 };
 
 window.toggleSelectionMode = () => {

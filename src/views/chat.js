@@ -3,6 +3,7 @@ import { sendMessage } from '../services/chatService.js';
 import { addMembersToGroup, removeMemberFromGroup } from '../services/chatService.js';
 
 window.activeInboxTab = 'active';
+window.activeChatListenerUnsubscribe = null;
 
 /**
  * Toggles view tabs within the core Inbox window workspace layouts.
@@ -124,6 +125,12 @@ window.loadChatRoom = (chatId) => {
 
     window.activeChatId = chatId;
 
+    // 🛡️ COST CONTROL: Unsubscribe from the previous chat stream if it exists before spawning a new one
+    if (typeof window.activeChatListenerUnsubscribe === 'function') {
+        window.activeChatListenerUnsubscribe();
+        window.activeChatListenerUnsubscribe = null;
+    }
+
     db.collection("chats").doc(chatId).get().then(async (doc) => {
         if (doc.exists) {
             const chat = doc.data();
@@ -139,7 +146,7 @@ window.loadChatRoom = (chatId) => {
         }
     });
 
-    db.collection("chats").doc(chatId).collection("messages")
+    window.activeChatListenerUnsubscribe = db.collection("chats").doc(chatId).collection("messages")
       .orderBy("createdAt", "asc")
       .onSnapshot((snap) => {
           msgContainer.innerHTML = "";

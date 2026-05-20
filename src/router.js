@@ -575,6 +575,11 @@ window.router = (path) => {
   const nav = document.getElementById("navbar");
   const isMobile = window.innerWidth <= 768;
 
+  if (path !== "/messages" && !path.startsWith("/messages/") && typeof window.activeChatListenerUnsubscribe === 'function') {
+      window.activeChatListenerUnsubscribe();
+      window.activeChatListenerUnsubscribe = null;
+  }
+
   if (path === "/" || path === "/login" || path === "/register") {
     nav.style.display = "none";
     app.style.marginTop = "0px";
