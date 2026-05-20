@@ -575,15 +575,6 @@ window.router = (path) => {
   const nav = document.getElementById("navbar");
   const isMobile = window.innerWidth <= 768;
 
-  if (window.activeCommentListeners) {
-      Object.keys(window.activeCommentListeners).forEach(id => {
-          if (typeof window.activeCommentListeners[id] === 'function') {
-              window.activeCommentListeners[id]();
-          }
-      });
-      window.activeCommentListeners = {};
-  }
-
   if (path !== "/messages" && !path.startsWith("/messages/") && typeof window.activeChatListenerUnsubscribe === 'function') {
       window.activeChatListenerUnsubscribe();
       window.activeChatListenerUnsubscribe = null;
