@@ -48,3 +48,39 @@ window.loginWithGoogle = () => {
             }
         });
 };
+
+/**
+ * Executes a complete account deletion sequence, removing the profile document,
+ * cleaning or anonymizing tracking metadata, and purging the Firebase Auth user record.
+ * @returns {Promise<void>}
+ */
+export const purgeUserAccountPermanently = async () => {
+    const user = firebase.auth().currentUser;
+    if (!user) throw new Error("No active authenticated user session discovered.");
+
+    const uid = user.uid;
+    const batch = db.batch();
+
+    // 1. Target the primary profile tracking entry document
+    const userRef = db.collection("users").doc(uid);
+    batch.delete(userRef);
+
+    // Commit the Firestore storage tier structural cleanup
+    await batch.commit();
+
+    // 2. Anonymize user published posts so the community timeline doesn't break
+    const postsSnap = await db.collection("posts").where("authorId", "==", uid).get();
+    if (!postsSnap.empty) {
+        const postBatch = db.batch();
+        postsSnap.forEach(doc => {
+            postBatch.update(doc.ref, {
+                authorName: "Anonymized Chef",
+                authorId: "deleted_user"
+            });
+        });
+        await postBatch.commit();
+    }
+
+    // 3. Sever the core credential authentication reference layer
+    await user.delete();
+};

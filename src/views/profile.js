@@ -1,6 +1,7 @@
 import { auth, db } from '../config.js';
 import { createPostCard } from '../components/postCard.js';
 import { fetchUserMealPlan } from '../services/plannerService.js';
+import { purgeUserAccountPermanently } from '../services/auth.js';
 
 const DEFAULT_AVATAR = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
@@ -386,6 +387,35 @@ window.handleProfileBack = () => {
         window.router("/dashboard");
     }
 };
+
+/**
+ * Orchestrates the data elimination confirmation sequence and forces a backend logout.
+ */
+window.handleDeleteAccountAction = async () => {
+    const primaryConfirm = await window.customConfirm("Are you completely sure you want to delete your account? This action will permanently remove your dietary trackers and profile logs.");
+    if (!primaryConfirm) return;
+
+    const finalConfirm = await window.customConfirm("FINAL WARNING: This cannot be undone. Proceeding will wipe out your account credentials immediately. Confirm execution?");
+    if (finalConfirm) {
+        try {
+            window.showToast("Executing data deletion pipeline...", "normal");
+            await purgeUserAccountPermanently();
+            window.showToast("Account successfully cleared from registries.", "success");
+            
+            // Send the browser back to the entry view gate
+            window.router("/");
+        } catch (err) {
+            console.error("Account elimination failure:", err);
+            if (err.code === "auth/requires-recent-login") {
+                window.showToast("Security Exception: Please re-authenticate or log back in before deleting your profile.", "error");
+            } else {
+                window.showToast("Elimination engine error: " + err.message, "error");
+            }
+        }
+    }
+};
+
+
 
 window.loadSavedPosts = loadSavedPosts;
 window.loadPublicProfile = loadPublicProfile;

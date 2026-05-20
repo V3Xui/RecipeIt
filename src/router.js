@@ -391,7 +391,13 @@ export const AccountSettingsView = `
         <textarea id="edit-bio" class="create-input" rows="3"></textarea>
         <span class="form-label">Change Password</span>
         <input type="password" id="edit-pass" class="create-input" placeholder="Leave blank to keep current">
-        <button onclick="window.saveProfile()" style="width:100%; padding:12px; border-radius:30px;">Save Profile</button>
+        <button onclick="window.saveProfile()" style="width:100%; padding:12px; border-radius:30px; margin-bottom:15px;">Save Profile</button>
+        
+        <div style="border-top:1px solid var(--border-color); margin-top:25px; padding-top:20px; text-align:center;">
+            <h4 style="color:#ff4500; margin:0 0 5px 0; font-size:0.95rem;">Danger Zone</h4>
+            <p style="color:var(--text-sec); font-size:0.75rem; margin:0 0 15px 0;">Permanently clear your dietary profile, shopping assets, and credentials.</p>
+            <button onclick="window.handleDeleteAccountAction()" style="background:#ff450015; color:#ff4500; border:1px solid #ff4500; padding:10px 20px; border-radius:20px; font-size:0.8rem; font-weight:bold; width:100%; cursor:pointer;">Delete Account Permanently</button>
+        </div>
     </div>
 `;
 
