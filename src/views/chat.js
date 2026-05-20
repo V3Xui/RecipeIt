@@ -188,26 +188,28 @@ window.sendChatMessage = async () => {
 window.startChat = (targetUserId, targetName) => {
     const currentUid = auth.currentUser.uid;
     if (currentUid === targetUserId) return window.showToast("You cannot message yourself", "error");
-    
     db.collection("chats")
-      .where("type", "==", "direct")
       .where("participants", "array-contains", currentUid)
       .get()
       .then(async (snap) => {
           let existingChatId = null;
           snap.forEach(doc => {
-              if (doc.data().participants?.includes(targetUserId)) existingChatId = doc.id;
+              const data = doc.data();
+              if (data.type === "direct" && data.participants.includes(targetUserId)) {
+                  existingChatId = doc.id;
+              }
           });
 
           if (existingChatId) {
               window.router(`/messages/${existingChatId}`);
           } else {
+              // Create a structured, compliant direct channel map instance
               const docRef = await db.collection("chats").add({
                   type: "direct",
                   participants: [currentUid, targetUserId],
                   unreadFor: {
                       [currentUid]: false,
-                      [targetUserId]: true // Flag as unread for the receiver immediately
+                      [targetUserId]: true
                   },
                   status: { [currentUid]: "accepted", [targetUserId]: "pending" },
                   archivedBy: { [currentUid]: false, [targetUserId]: false },
@@ -222,8 +224,8 @@ window.startChat = (targetUserId, targetName) => {
               window.router(`/messages/${docRef.id}`);
           }
       }).catch(err => {
-          console.error("Start chat failure:", err);
-          window.showToast("Could not open message channel.", "error");
+          console.error("DM structural match exception:", err);
+          window.showToast("Could not route to conversation.", "error");
       });
 };
 
