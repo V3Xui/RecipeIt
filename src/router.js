@@ -222,7 +222,7 @@ export const EditView = `
         <span class="form-label">Update Photo</span>
         <input type="file" id="edit-image" accept="image/*" style="margin-bottom:20px;">
 
-        <button onclick="window.submitUpdate()" style="width:100%; padding:12px; border-radius:30px;">Save Changes</button>
+        <button onclick="window.submitUpdate()" style="width:100%;">Save Changes</button>
     </div>
 `;
 

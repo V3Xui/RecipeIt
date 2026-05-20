@@ -83,33 +83,35 @@ export const updateNavbar = (user) => {
 };
 
 export const listenForUnreadMessages = (userId) => {
-    db.collection("chats")
-      .where("participants", "array-contains", userId)
-      .where(`unreadFor.${userId}`, "==", true)
-      .onSnapshot((snap) => {
-          const count = snap.size;
-          const badge = document.getElementById("nav-msg-badge");
-          if (badge) {
-              if (count > 0) {
-                  badge.style.display = "block";
-                  badge.innerText = count > 9 ? "9+" : count;
-              } else {
-                  badge.style.display = "none";
-              }
-          }
-      }, (err) => {
-          console.error("Inbox badge stream failed:", err);
-      });
+    // First, verify the active user profile exists before running nested collection streams
+    db.collection("users").doc(userId).get().then((userDoc) => {
+        if (!userDoc.exists) return;
 
-    // 2. Activity Notifications Dot
-    db.collection("users").doc(userId).collection("notifications")
-      .where("read", "==", false)
-      .onSnapshot((snap) => {
-          const hasUnread = !snap.empty;
-          window.hasUnreadNotifications = hasUnread; 
-          const dot = document.getElementById("dashboard-notif-dot");
-          if (dot) dot.style.display = hasUnread ? "block" : "none";
-      }, (err) => {
-          console.error("Notification dot stream failed:", err);
-      });
+        // 1. Unread Messages Badge Listener
+        db.collection("chats")
+          .where("participants", "array-contains", userId)
+          .where(`unreadFor.${userId}`, "==", true)
+          .onSnapshot((snap) => {
+              const count = snap.size;
+              const badge = document.getElementById("nav-msg-badge");
+              if (badge) {
+                  if (count > 0) {
+                      badge.style.display = "block";
+                      badge.innerText = count > 9 ? "9+" : count;
+                  } else {
+                      badge.style.display = "none";
+                  }
+              }
+          }, (err) => console.warn("Scoped inbox listener suspended.", err));
+
+        // 2. Activity Notifications Dot Listener
+        db.collection("users").doc(userId).collection("notifications")
+          .where("read", "==", false)
+          .onSnapshot((snap) => {
+              const hasUnread = !snap.empty;
+              window.hasUnreadNotifications = hasUnread; 
+              const dot = document.getElementById("dashboard-notif-dot");
+              if (dot) dot.style.display = hasUnread ? "block" : "none";
+          }, (err) => console.warn("Scoped notifications listener suspended.", err));
+    }).catch(err => console.error("Identity verification failure:", err));
 };

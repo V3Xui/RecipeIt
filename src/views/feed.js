@@ -116,6 +116,66 @@ window.toggleComments = (id) => {
     }
 };
 
+window.submitUpdate = async () => {
+    if (!window.editingPostId) return window.router("/dashboard");
+    
+    // Pass raw strings through our security input escaping utility
+    const title = document.getElementById("edit-title").value.trim();
+    const category = document.getElementById("post-category").value;
+    const desc = document.getElementById("edit-desc").value.trim();
+    
+    const ingredients = document.getElementById("edit-ingredients").value.split('\n')
+        .filter(l => l.trim() !== '');
+    const instructions = document.getElementById("edit-instructions").value.split('\n')
+        .filter(l => l.trim() !== '');
+    const tips = document.getElementById("edit-tips").value.split('\n')
+        .filter(l => l.trim() !== '');
+
+    const calories = parseInt(document.getElementById("edit-calories").value) || 0;
+    const protein = parseInt(document.getElementById("edit-protein").value) || 0;
+    const carbs = parseInt(document.getElementById("edit-carbs").value) || 0;
+    const fats = parseInt(document.getElementById("edit-fats").value) || 0;
+
+    const dietaryTags = [];
+    document.querySelectorAll('input[name="edit-diet-tags"]:checked').forEach(cb => dietaryTags.push(cb.value));
+
+    if (!title) return window.showToast("Dish Name is required!", "error");
+
+    const updateData = {
+        title,
+        category,
+        description: desc,
+        ingredients,
+        instructions,
+        tips,
+        nutrition: { calories, protein, carbs, fat: fats },
+        dietaryTags
+    };
+
+    const file = document.getElementById("edit-image").files[0];
+
+    const commitUpdate = async (imageUrl) => {
+        if (imageUrl) updateData.imageUrl = imageUrl;
+        try {
+            await db.collection("posts").doc(window.editingPostId).update(updateData);
+            window.showToast("Changes saved successfully!", "success");
+            window.editingPostId = null;
+            window.router("/dashboard");
+        } catch (err) {
+            console.error("Recipe modification failure:", err);
+            window.showToast("Failed to save changes: " + err.message, "error");
+        }
+    };
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => commitUpdate(reader.result);
+        reader.readAsDataURL(file);
+    } else {
+        await commitUpdate(null);
+    }
+};
+
 export const loadEditForm = () => {
     if (!window.editingPostId) return window.router("/dashboard");
     
