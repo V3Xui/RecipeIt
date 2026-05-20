@@ -377,6 +377,16 @@ window.loadMealPlannerDashboard = async () => {
     }
 };
 
+window.handleProfileBack = () => {
+    // If there is an existing history state stack trail, pop back gracefully
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        // Fallback safety baseline route if the page was opened directly via a shared link
+        window.router("/dashboard");
+    }
+};
+
 window.loadSavedPosts = loadSavedPosts;
 window.loadPublicProfile = loadPublicProfile;
 window.loadAccountSettings = loadAccountSettings;

@@ -2,6 +2,7 @@ import { auth, db } from '../config.js';
 import { createPost } from '../services/postService.js';
 import { reportPost, purgePost, clearPostFlags, banUserAccount } from '../services/adminService.js';
 import { createPostCard } from '../components/postCard.js';
+import { sanitizeHTML, enforceRateLimit } from '../services/securityService.js';
 
 // Centralize local UI feed states
 let lastVisibleDoc = null;
@@ -12,13 +13,16 @@ let hasMorePosts = true;
  * Handles the extraction and publishing structure for new recipes.
  */
 window.submitPost = async () => {
+    if (!enforceRateLimit(3)) return;
     const user = auth.currentUser;
-    const title = document.getElementById("post-title").value;
+    const title = sanitizeHTML(document.getElementById("post-title").value);
     const category = document.getElementById("post-category").value; 
-    const desc = document.getElementById("post-desc").value;
-    const ingredients = document.getElementById("post-ingredients").value.split('\n').filter(l => l.trim() !== '');
-    const instructions = document.getElementById("post-instructions").value.split('\n').filter(l => l.trim() !== '');
-    const tips = document.getElementById("post-tips").value.split('\n').filter(l => l.trim() !== '');
+    const desc = sanitizeHTML(document.getElementById("post-desc").value);
+
+    const ingredients = document.getElementById("post-ingredients").value.split('\n').filter(l => l.trim() !== '').map(item => sanitizeHTML(item));
+    const instructions = document.getElementById("post-instructions").value.split('\n').filter(l => l.trim() !== '').map(step => sanitizeHTML(step));
+    const tips = document.getElementById("post-tips").value.split('\n').filter(l => l.trim() !== '').map(tip => sanitizeHTML(tip));
+
     const file = document.getElementById("post-image").files[0];
 
     const calories = parseInt(document.getElementById("post-calories").value) || 0;
@@ -185,11 +189,14 @@ window.votePost = (id, type) => {
   
 window.addComment = (id) => {
     const input = document.getElementById(`input-${id}`);
-    const text = input.value.trim();
+    const text = sanitizeHTML(input.value.trim());
     const user = auth.currentUser;
     if (user && text) {
       db.collection("posts").doc(id).collection("comments").add({
-          text, authorName: user.displayName || user.email, authorId: user.uid, createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+          text, 
+          authorName: user.displayName || user.email, 
+          authorId: user.uid, 
+          createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
       }).then(() => input.value = "");
     }
 };

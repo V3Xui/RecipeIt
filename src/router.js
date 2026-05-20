@@ -314,16 +314,67 @@ export const MessagesView = `
 `;
 
 export const ChatRoomView = `
-    <div class="dashboard-page" style="display:flex; flex-direction:column; height:calc(100vh - 120px); padding:10px;">
-        <div style="display:flex; align-items:center; padding:10px; border-bottom:1px solid var(--border-color); background:var(--card-bg); border-radius:8px 8px 0 0;">
-            <button onclick="window.router('/messages')" style="background:transparent; color:var(--text-main); padding:5px; margin-right:10px; border:none; cursor:pointer;"><i class='bx bx-arrow-back' style='font-size:1.3rem;'></i></button>
-            <h3 id="chat-header-name">Chef</h3>
+    <div class="dashboard-page" style="display:flex; flex-direction:column; height:calc(100vh - 120px); padding:10px; position:relative;">
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 15px; border-bottom:1px solid var(--border-color); background:var(--card-bg); border-radius:8px 8px 0 0; position:relative; z-index:10;">
+            <div style="display:flex; align-items:center;">
+                <button onclick="window.router('/messages')" style="background:transparent; color:var(--text-main); padding:5px; margin-right:10px; border:none; cursor:pointer;">
+                    <i class='bx bx-arrow-back' style='font-size:1.3rem;'></i>
+                </button>
+                <h3 id="chat-header-name" style="margin:0; font-size:1.1rem;">Chef</h3>
+            </div>
+            
+            <div style="position:relative;">
+                <button onclick="window.toggleChatInfoMenu(event)" style="background:transparent; color:var(--text-main); border:none; cursor:pointer; padding:5px; display:flex; align-items:center;">
+                    <i class='bx bx-info-circle' style='font-size:1.4rem; color:var(--accent-color);'></i>
+                </button>
+                
+                <div id="chat-info-dropdown" style="display:none; position:absolute; top:100%; right:0; background:var(--card-bg); border:1px solid var(--border-color); border-radius:8px; width:180px; box-shadow:0 4px 12px var(--shadow); margin-top:5px; overflow:hidden; z-index:100;">
+                    <div id="info-menu-profile" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); font-size:0.85rem; padding:10px 12px;">
+                        <i class='bx bx-user' style="color:var(--accent-color);"></i> View Profile
+                    </div>
+                    <div id="info-menu-members" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); font-size:0.85rem; padding:10px 12px; display:none;">
+                        <i class='bx bx-group' style="color:var(--accent-color);"></i> View Members
+                    </div>
+                    <div id="info-menu-mute" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); font-size:0.85rem; padding:10px 12px;">
+                        <i class='bx bx-bell-off'></i> Mute Channel
+                    </div>
+                    <div id="info-menu-clear" class="menu-item-styled" style="border-bottom:1px solid var(--border-color); font-size:0.85rem; padding:10px 12px; color:#ff9800;">
+                        <i class='bx bx-eraser'></i> Clear History
+                    </div>
+                    <div id="info-menu-block" class="menu-item-styled" style="font-size:0.85rem; padding:10px 12px; color:#ff4500; font-weight:bold;">
+                        <i class='bx bx-user-x'></i> Block User
+                    </div>
+                </div>
+            </div>
         </div>
+        
         <div id="chat-messages" style="flex:1; overflow-y:auto; padding:15px; background:var(--bg-color); border:1px solid var(--border-color); border-top:none; border-bottom:none; display:flex; flex-direction:column;"></div>
+        
         <div style="display:flex; gap:10px; padding:10px; background:var(--card-bg); border-radius:0 0 8px 8px; border:1px solid var(--border-color);">
             <input type="text" id="chat-input" placeholder="Type a message..." class="create-input" style="margin:0; flex:1; border-radius:20px;">
-            <button onclick="window.sendChatMessage()" style="border-radius:50%; width:45px; height:45px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer;"><i class='bx bx-send' style='font-size:1.2rem;'></i></button>
+            <button onclick="window.sendChatMessage()" style="border-radius:50%; width:45px; height:45px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <i class='bx bx-send' style='font-size:1.2rem;'></i>
+            </button>
         </div>
+
+        <div id="group-members-modal" class="modal-overlay" style="display:none; z-index:200;">
+            <div class="modal-card" style="max-width:380px; width:90%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                    <h3 style="margin:0; font-size:1.1rem;"><i class='bx bx-group' style="color:var(--accent-color);"></i> Circle Roster</h3>
+                    <button onclick="document.getElementById('group-members-modal').style.display='none'" style="background:transparent; border:none; color:var(--text-main); cursor:pointer; font-size:1.2rem;"><i class='bx bx-x'></i></button>
+                </div>
+                
+                <div id="modal-members-list" style="max-height:200px; overflow-y:auto; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;"></div>
+                
+                <div style="border-top:1px solid var(--border-color); padding-top:12px;">
+                    <h4 style="margin:0 0 8px 0; font-size:0.85rem; text-transform:uppercase; color:var(--text-sec); letter-spacing:0.5px;">Invite Other Cooks</h4>
+                    <div id="modal-add-candidates-list" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
+                    <button id="modal-btn-add-submit" style="width:100%; padding:8px; border-radius:8px; font-size:0.85rem; font-weight:bold; display:none;">Add Selected Cooks</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 `;
 
@@ -374,8 +425,15 @@ export const ShoppingListView = `
 
 export const PublicProfileView = `
     <div class="dashboard-page" style="padding:15px;">
-        <div style="background:var(--card-bg); border:1px solid var(--border-color); padding:20px; border-radius:10px; text-align:center; margin-bottom:20px;">
-            <img id="profile-avatar" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px; border:2px solid var(--accent-color);">
+        <div style="background:var(--card-bg); border:1px solid var(--border-color); padding:20px; border-radius:10px; text-align:center; margin-bottom:20px; position:relative;">
+            
+            <div style="position:absolute; top:15px; left:15px;">
+                <button onclick="window.handleProfileBack()" style="background:transparent; color:var(--text-main); border:none; cursor:pointer; padding:5px; display:flex; align-items:center; gap:5px; font-size:0.9rem; font-weight:600;">
+                    <i class='bx bx-arrow-back' style='font-size:1.3rem; color:var(--accent-color);'></i> Back
+                </button>
+            </div>
+
+            <img id="profile-avatar" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px; border:2px solid var(--accent-color); margin-top:15px;">
             <h2 id="profile-name">Chef</h2>
             <p id="profile-bio" style="color:var(--text-sec); font-style:italic; font-size:0.9rem; margin:10px 0;"></p>
             <div style="display:flex; justify-content:center; gap:25px; margin:15px 0; font-size:0.9rem;">
