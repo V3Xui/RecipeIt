@@ -168,7 +168,9 @@ window.votePost = (id, type) => {
     db.runTransaction(async (t) => {
       const doc = await t.get(ref);
       const d = doc.data();
-      let up = d.upvotedBy || [], down = d.downvotedBy || [];
+      // Ensure local variables default safely to arrays to prevent operational runtime faults
+      let up = d.upvotedBy || [];
+      let down = d.downvotedBy || [];
   
       if (type === "up") {
           up.includes(uid) ? (up = up.filter(i => i !== uid)) : (up.push(uid), down = down.filter(i => i !== uid));
@@ -184,7 +186,10 @@ window.votePost = (id, type) => {
         if(scoreEl) scoreEl.innerText = up.length - down.length;
         if(btnUp) btnUp.style.color = up.includes(uid) ? "var(--accent-color)" : "var(--text-sec)";
         if(btnDown) btnDown.style.color = down.includes(uid) ? "#7193ff" : "var(--text-sec)";
-    }).catch(console.error);
+    }).catch((err) => {
+        console.error("Voting system exception:", err);
+        window.showToast("Voting transaction error.", "error");
+    });
 };
   
 window.addComment = (id) => {

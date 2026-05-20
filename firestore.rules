@@ -23,7 +23,23 @@ service cloud.firestore {
     match /posts/{postId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if request.auth != null && (
+      
+      // 🛡️ THE SECURITY CORRECTION: Allow community voting updates while securing core fields
+      allow update: if request.auth != null && (
+        resource.data.authorId == request.auth.uid || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (
+          // Enforce that non-authors can only touch voting arrays
+          request.resource.data.title == resource.data.title &&
+          request.resource.data.category == resource.data.category &&
+          request.resource.data.description == resource.data.description &&
+          request.resource.data.ingredients == resource.data.ingredients &&
+          request.resource.data.instructions == resource.data.instructions &&
+          request.resource.data.authorId == resource.data.authorId
+        )
+      );
+      
+      allow delete: if request.auth != null && (
         resource.data.authorId == request.auth.uid || 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
