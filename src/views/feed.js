@@ -110,12 +110,12 @@ window.toggleComments = (id) => {
     if (section.style.display === "none" || !section.style.display) {
         section.style.display = "block";
         
-        // Kill any duplicate listener on this card before spawning a new one
+        // Terminate any duplicate streaming listener on this card path
         if (typeof window.activeCommentListeners[id] === 'function') {
             window.activeCommentListeners[id]();
         }
 
-        // Capture the unsubscribe hook returned by onSnapshot
+        // Capture the unsubscribe reference returned by the Firestore SDK listener
         window.activeCommentListeners[id] = db.collection("posts").doc(id).collection("comments")
           .orderBy("createdAt", "asc")
           .onSnapshot((snap) => {
@@ -123,10 +123,11 @@ window.toggleComments = (id) => {
               snap.forEach((d) => {
                   list.innerHTML += `<div style="background:var(--bg-color); padding:8px; margin-bottom:5px; border-radius:4px;"><strong style="color:var(--accent-color);">${d.data().authorName}</strong><div>${d.data().text}</div></div>`;
               });
-          }, (err) => console.warn("Comments stream suspended safely.", err.message));
+          }, (err) => {
+              console.warn(`Comments snapshot stream for card ${id} safely suspended:`, err.message);
+          });
     } else { 
         section.style.display = "none";
-        // 🛡️ THE FIX: Kill the listener connection immediately when hiding the UI
         if (typeof window.activeCommentListeners[id] === 'function') {
             window.activeCommentListeners[id]();
             delete window.activeCommentListeners[id];
