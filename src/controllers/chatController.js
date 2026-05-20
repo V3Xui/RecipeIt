@@ -65,6 +65,12 @@ window.submitGroupChannel = async () => {
     if (!name) return window.showToast("Group name required!", "error");
     if (checkedBoxes.length === 0) return window.showToast("Select at least 1 member!", "error");
 
+    // 🛡️ ARCHITECTURAL BOUNDARY: Enforce a strict 5-member household utility cap
+    if (checkedBoxes.length > 4) {
+        window.showToast("Cooking circles are optimized for household utility and capped at 5 members max.", "error");
+        return;
+    }
+
     const memberIds = Array.from(checkedBoxes).map(cb => cb.value);
     memberIds.push(auth.currentUser.uid); // Ensure creator is included
 
