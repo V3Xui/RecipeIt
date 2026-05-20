@@ -403,7 +403,9 @@ export const AccountSettingsView = `
 
 export const SavedRecipesView = `
     <div class="dashboard-page" style="padding:15px;">
-        <h2 style="margin-bottom:15px;">Saved Recipes</h2>
+        <h2 style="margin-bottom:15px;">
+            <i class='bx bx-left-arrow-alt' onclick="window.router('/menu')" style="cursor:pointer; margin-right:10px; font-size:1.6rem; vertical-align:middle;"></i>Saved Recipes
+        </h2>
         <div id="saved-posts-feed"></div>
     </div>
 `;
@@ -411,7 +413,9 @@ export const SavedRecipesView = `
 export const ShoppingListView = `
     <div class="dashboard-page" style="padding:15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2>Shopping List</h2>
+            <h2 style="display:flex; align-items:center;">
+                <i class='bx bx-left-arrow-alt' onclick="window.router('/menu')" style="cursor:pointer; margin-right:10px; font-size:1.6rem;"></i>Shopping List
+            </h2>
             <button onclick="window.toggleSelectionMode()" style="background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); padding:5px 12px; border-radius:20px; font-size:0.85rem; cursor:pointer;">Manage</button>
         </div>
         <div id="add-item-row" style="display:flex; gap:10px; margin-bottom:15px;">
@@ -455,7 +459,9 @@ export const PublicProfileView = `
 
 export const NotificationsView = `
     <div class="dashboard-page" style="padding:15px;">
-        <h2 style="margin-bottom:15px;">Notifications</h2>
+        <h2 style="margin-bottom:15px;">
+            <i class='bx bx-left-arrow-alt' onclick="window.router('/menu')" style="cursor:pointer; margin-right:10px; font-size:1.6rem; vertical-align:middle;"></i>Notifications
+        </h2>
         <div id="notif-list" style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:10px; overflow:hidden;"></div>
     </div>
 `;
@@ -484,7 +490,10 @@ export const MenuView = `
 
 export const PlannerView = `
     <div class="dashboard-page" style="padding:15px;">
-        <h2 style="margin-bottom:2px;"><i class='bx bx-calendar-heart' style="color:var(--accent-color);"></i> Daily Meal Planner</h2>
+        <h2 style="margin-bottom:2px; display:flex; align-items:center;">
+            <i class='bx bx-left-arrow-alt' onclick="window.router('/menu')" style="cursor:pointer; margin-right:10px; font-size:1.6rem; color:var(--text-main);"></i>
+            <i class='bx bx-calendar-heart' style="color:var(--accent-color); margin-right:5px;"></i> Daily Meal Planner
+        </h2>
         <p style="color:var(--text-sec); font-size:0.85rem; margin-bottom:15px;">Track scheduled meals and aggregated metrics against daily baselines.</p>
         <div id="weekly-planner-container" style="display:flex; flex-direction:column; gap:15px;"></div>
     </div>
