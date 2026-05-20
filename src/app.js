@@ -23,17 +23,23 @@ if ('serviceWorker' in navigator) {
 
 window.myBookmarks = [];
 
+let userProfileListenerUnsubscribe = null;
+
 auth.onAuthStateChanged((user) => {
   updateNavbar(user);
   if (user) {
     listenForUnreadMessages(user.uid);
 
-    // FIX: Set up real-time metadata syncing for roles and active bans
-    db.collection("users").doc(user.uid).onSnapshot((doc) => {
+    // 🛡️ FIX: Track the listener and attach a fallback error handler
+    userProfileListenerUnsubscribe = db.collection("users").doc(user.uid).onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
             window.myBookmarks = data.savedRecipes || [];
-            window.currentUserData = data; // Save role info globally
+            window.currentUserData = {
+                blockedUsers: [],
+                blockedBy: [],
+                ...data
+            };
 
             // REAL-TIME BAN ENFORCEMENT ENGINE
             if (data.isBanned === true) {
@@ -43,7 +49,7 @@ auth.onAuthStateChanged((user) => {
                 return;
             }
         }
-    });
+    }, (err) => console.warn("User profile listener suspended safely.", err.message));
 
     if (["", "#/", "#/login", "#/register"].includes(window.location.hash)) {
       window.router("/dashboard");
@@ -65,7 +71,13 @@ auth.onAuthStateChanged((user) => {
         }
     }, 500);
   } else {
+      // 🛡️ FIX: Kill the listener streams immediately when the user signs out
+      if (typeof userProfileListenerUnsubscribe === 'function') {
+          userProfileListenerUnsubscribe();
+          userProfileListenerUnsubscribe = null;
+      }
       window.currentUserData = null;
       window.router("/");
   }
 });
+

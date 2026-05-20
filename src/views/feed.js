@@ -211,4 +211,5 @@ export const loadEditForm = () => {
 };
 
 window.openEditPage = (id) => { window.editingPostId = id; window.router("/edit"); };
+window.submitUpdate = submitUpdate;
 window.loadPosts = loadPosts;
