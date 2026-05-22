@@ -74,6 +74,7 @@ window.reportPost = async (postId) => {
  * Handles the administrative purge request with custom dialog confirmation wrapping.
  */
 window.adminDeletePost = async (postId) => {
+    // 🛡️ THE FIX: Call your custom modal dialog instead of the browser's plain alert
     const confirmed = await window.customConfirm("ADMIN CONTROL: Are you absolutely sure you want to permanently delete this post?");
     if (confirmed) {
         try {
@@ -94,6 +95,7 @@ window.adminDeletePost = async (postId) => {
  * Dismisses user-submitted flags and retains the recipe inside standard search queues.
  */
 window.adminMarkSafe = async (postId) => {
+    // 🛡️ THE FIX: Call your custom modal dialog instead of the browser's plain alert
     const confirmed = await window.customConfirm("ADMIN CONTROL: Are you sure you want to dismiss all user flags and mark this recipe as safe?");
     if (confirmed) {
         try {

@@ -1,5 +1,6 @@
 import { auth, db } from './config.js';
 import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './components/navBar.js';
+import { customAlert } from './components/customAlert.js';
 
 import './services/auth.js';
 import './controllers/feedController.js';
@@ -13,6 +14,7 @@ import './views/chat.js';
 
 setupDropdownStyles();
 initTheme();
+window.customConfirm = confirmDialog;
 
 // --- PWA SETUP ---
 if ('serviceWorker' in navigator) {
@@ -80,4 +82,3 @@ auth.onAuthStateChanged((user) => {
       window.router("/");
   }
 });
-
