@@ -76,7 +76,7 @@ export const CreateView = `
         
         <span class="form-label">Category</span>
         <select id="post-category" class="create-input" style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background:var(--input-bg); color:var(--text-main); margin-bottom:20px;">
-            <option value="General">General</option>
+            <option value="Entrée">Entrée</option>
             <option value="Appetizer">Appetizer</option>
             <option value="Breakfast">Breakfast</option>
             <option value="Lunch">Lunch</option>
@@ -155,7 +155,7 @@ export const EditView = `
         
         <span class="form-label">Category</span>
         <select id="post-category" class="create-input" style="width:100%; padding:12px; border:1px solid var(--border-color); border-radius:12px; background:var(--input-bg); color:var(--text-main); margin-bottom:20px;">
-            <option value="General">General</option>
+            <option value="Entrée">Entrée</option>
             <option value="Appetizer">Appetizer</option>
             <option value="Breakfast">Breakfast</option>
             <option value="Lunch">Lunch</option>
@@ -239,6 +239,9 @@ export const SearchView = `
         <div id="category-section">
             <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Browse Course</h2>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+                <div onclick="window.setCategory('Entrée')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                    <i class='bx bx-restaurant' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Entrée
+                </div>
                 <div onclick="window.setCategory('Appetizer')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
                     <i class='bx bx-cheese' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Appetizer
                 </div>
@@ -253,9 +256,6 @@ export const SearchView = `
                 </div>
                 <div onclick="window.setCategory('Dessert')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
                     <i class='bx bx-cake' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>Dessert
-                </div>
-                <div onclick="window.setCategory('General')" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
-                    <i class='bx bx-restaurant' style='font-size: 1.5rem; color: var(--accent-color); display: block; margin-bottom: 3px;'></i>General
                 </div>
             </div>
 

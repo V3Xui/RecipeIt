@@ -1,6 +1,6 @@
 import { auth, db } from './config.js';
 import { updateNavbar, setupDropdownStyles, initTheme, listenForUnreadMessages } from './components/navBar.js';
-import { customAlert } from './components/customAlert.js';
+// import { customAlert } from '.components/customAlert.js';
 
 import './services/auth.js';
 import './controllers/feedController.js';
@@ -14,7 +14,8 @@ import './views/chat.js';
 
 setupDropdownStyles();
 initTheme();
-window.customConfirm = confirmDialog;
+// window.customConfirm = confirmDialog;
+// window.customConfirm = customConfirm;
 
 // --- PWA SETUP ---
 if ('serviceWorker' in navigator) {
@@ -32,7 +33,7 @@ auth.onAuthStateChanged((user) => {
   if (user) {
     listenForUnreadMessages(user.uid);
 
-    // 🛡️ FIX: Track the listener and attach a fallback error handler
+    // Track the listener and attach a fallback error handler
     userProfileListenerUnsubscribe = db.collection("users").doc(user.uid).onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
@@ -46,6 +47,14 @@ auth.onAuthStateChanged((user) => {
             // REAL-TIME BAN ENFORCEMENT ENGINE
             if (data.isBanned === true) {
                 window.showToast("Your account has been suspended by a moderator.", "error");
+                auth.signOut();
+                window.router("/");
+                return;
+            }
+
+            // ⚖️ PHASE 2 REFACTOR: Real-Time False Report Strike Enforcement
+            if (data.falseReportCount && data.falseReportCount >= 3) {
+                window.showToast("Your account has been suspended due to excessive false reporting.", "error");
                 auth.signOut();
                 window.router("/");
                 return;
@@ -73,7 +82,7 @@ auth.onAuthStateChanged((user) => {
         }
     }, 500);
   } else {
-      // 🛡️ FIX: Kill the listener streams immediately when the user signs out
+      // Kill the listener streams immediately when the user signs out
       if (typeof userProfileListenerUnsubscribe === 'function') {
           userProfileListenerUnsubscribe();
           userProfileListenerUnsubscribe = null;

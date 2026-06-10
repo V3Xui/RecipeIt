@@ -21,6 +21,7 @@ export const createPost = (postPayload) => {
         upvotedBy: [],
         downvotedBy: [],
         reportCount: 0,
+        reportedByUsers: [],
         nutrition: postPayload.nutrition,
         dietaryTags: postPayload.dietaryTags
     });
@@ -66,6 +67,14 @@ export const queryRecipesByDiet = (dietTag, limitSize = 20) => {
  * @returns {Promise<firebase.firestore.QuerySnapshot>}
  */
 export const queryRecipesByCategory = (category, limitSize = 20) => {
+    // Phase 1: Support legacy category data parameters mapping seamlessly
+    if (category === "Entrée") {
+        return db.collection("posts")
+            .where("category", "in", ["Entrée", "General"])
+            .orderBy("createdAt", "desc")
+            .limit(limitSize)
+            .get();
+    }
     return db.collection("posts")
         .where("category", "==", category)
         .orderBy("createdAt", "desc")

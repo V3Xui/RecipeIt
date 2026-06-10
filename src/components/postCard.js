@@ -16,7 +16,7 @@ const renderIngredients = (ingredients) => {
 const renderCookingSteps = (instructions) => {
     if (!instructions || instructions.length === 0) return "<p>No instructions provided.</p>";
     return instructions.map((step, index) => 
-        `<div class="cooking-step">
+        `<div class="cooking-step" style="margin-bottom: 15px;">
             <strong style="color:var(--accent-color); display:block; font-size:1rem; margin-bottom:5px;">STEP ${index + 1}</strong>
             ${step}
         </div>`
@@ -24,7 +24,7 @@ const renderCookingSteps = (instructions) => {
 };
 
 /**
- * Pure Functional Presentation Factory to output a uniform post card card layout.
+ * Pure Functional Presentation Factory to output a uniform post card layout.
  * @param {object} post - Raw data payload from Firestore
  * @param {string} postId - Unique document identifier string
  * @param {object} currentUser - Active authenticated user reference
@@ -34,7 +34,9 @@ const renderCookingSteps = (instructions) => {
 export const createPostCard = (post, postId, currentUser, globalState = {}) => {
     const uid = currentUser ? currentUser.uid : null;
     const date = post.createdAt ? post.createdAt.toDate().toDateString() : "Just now";
-    const category = post.category || "General";
+    
+    // 🛡️ PHASE 1 REFACTOR: Map legacy 'General' category strings to 'Entrée' for backward compatibility
+    const category = post.category === "General" ? "Entrée" : (post.category || "Entrée");
 
     // 1. Voting Parameters Calculations
     const upvotes = post.upvotedBy || [];
@@ -120,14 +122,24 @@ export const createPostCard = (post, postId, currentUser, globalState = {}) => {
     }
 
     return `
-        <div id="cooking-mode-${postId}" class="cooking-mode-overlay">
+        <div id="cooking-mode-${postId}" class="cooking-mode-overlay" style="display:none; flex-direction:column;">
             <div class="cooking-header">
                 <h2 style="margin:0;">Cooking Mode</h2>
-                <button class="close-cooking" onclick="document.getElementById('cooking-mode-${postId}').style.display='none'">Done Cooking</button>
+                <button class="close-cooking" onclick="document.getElementById('cooking-mode-${postId}').style.display='none'; document.getElementById('video-stream-${postId}')?.pause();">Done Cooking</button>
             </div>
-            <div style="max-width: 800px; margin: 0 auto; width: 100%;">
-                ${renderCookingSteps(post.instructions)}
-                <div style="text-align:center; margin-top:50px; color:#888;">Bon Appétit! 🍽️</div>
+            <div style="max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; padding: 15px; box-sizing: border-box;">
+                
+                <div class="cooking-video-container" style="width:100%; max-width:400px; margin:0 auto; border-radius:12px; overflow:hidden; background:#000; box-shadow:0 4px 15px rgba(0,0,0,0.4);">
+                    <video id="video-stream-${postId}" controls loop muted playsinline style="width:100%; display:block; aspect-ratio:9/16; object-fit:cover;">
+                        <source src="${post.techniqueVideoUrl || 'https://assets.mixkit.co/videos/preview/mixkit-cooking-in-a-pot-close-up-4673-large.mp4'}" type="video/mp4">
+                        Your browser does not support the execution of native video tags.
+                    </video>
+                </div>
+
+                <div class="cooking-steps-scroller" style="flex:1;">
+                    ${renderCookingSteps(post.instructions)}
+                </div>
+                <div style="text-align:center; margin-top:30px; color:#888; font-style:italic;">Bon Appétit! 🍽️</div>
             </div>
         </div>
 
@@ -161,7 +173,7 @@ export const createPostCard = (post, postId, currentUser, globalState = {}) => {
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
                     <button onclick="window.addToShoppingList(event, '${postId}')" class="details-btn"><i class='bx bx-plus'></i> Shopping List</button>
                     <button onclick="window.openMealPlannerModal(event, '${postId}', '${(post.title || 'Recipe').replace(/'/g, "\\'")}')" class="details-btn"><i class='bx bx-calendar-plus'></i> Plan Meal</button>
-                    <button onclick="document.getElementById('cooking-mode-${postId}').style.display='flex'" class="details-btn primary"><i class='bx bx-play-circle'></i> Start Cooking</button>
+                    <button onclick="document.getElementById('cooking-mode-${postId}').style.display='flex'; document.getElementById('video-stream-${postId}')?.play();" class="details-btn primary"><i class='bx bx-play-circle'></i> Start Cooking</button>
                 </div>
                 <div style="margin-top:20px;">
                     <strong>Ingredients:</strong>
