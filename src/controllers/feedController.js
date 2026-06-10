@@ -58,15 +58,24 @@ window.submitPost = async () => {
 };
 
 /**
- * Executes a reporting action on a post, notifying administrators via a reportCount tracking system field increment.
+ * Executes a reporting action on a post, tracking the reporter's UID to prevent false spamming.
  */
 window.reportPost = async (postId) => {
+    const user = auth.currentUser;
+    if (!user) return window.showToast("You must be logged in to report content.", "error");
+
     try {
-        await reportPost(postId);
+        // 🛡️ PHASE 2 FIX: Atomically increment reportCount and push reporter UID to tracking array
+        await db.collection("posts").doc(postId).update({
+            reportCount: window.firebase.firestore.FieldValue.increment(1),
+            reportedByUsers: window.firebase.firestore.FieldValue.arrayUnion(user.uid)
+        });
+        
         window.showToast("Post has been reported for evaluation.", "success");
         document.querySelectorAll('.post-menu-content').forEach(el => el.style.display = 'none');
     } catch (err) {
         console.error("Report step failure:", err);
+        window.showToast("Error processing report submission.", "error");
     }
 };
 
